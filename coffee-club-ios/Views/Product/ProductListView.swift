@@ -1,32 +1,134 @@
-//
-//  ProductListView.swift
-//  coffee-club-ios
-//
-//  Created by Bahadır Pekcan on 8.05.2025.
-//
-
 import SwiftUI
 
 struct ProductListView: View {
     @EnvironmentObject var auth: AuthViewModel
+    @Binding var isActive: Bool
+    let category: String
+
     @State private var products: [Product] = []
 
+    @State private var offsetY: CGFloat = 0
+    @State private var currentIndex: CGFloat = 0
+
     var body: some View {
-        NavigationView {
-            List(products) { product in
-                VStack(alignment: .leading) {
-                    Text(product.name)
-                        .font(.headline)
-                    Text("\(product.price)₺")
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
+        GeometryReader { geo in
+            let size = geo.size
+            let cardSize = size.width * 1
+
+            ZStack {
+                // Background Gradient
+                LinearGradient(
+                    colors: [
+                        .clear,
+                        Color.brown.opacity(0.2),
+                        Color.brown.opacity(0.45),
+                        Color.brown,
+                    ],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+                .frame(height: 300)
+                .frame(maxHeight: .infinity, alignment: .bottom)
+                .ignoresSafeArea()
+
+                // Header View
+                HeaderView(size: size)
+                    .zIndex(1)
+
+                // Coffee Cards
+
+                VStack(spacing: 0) {
+                    ForEach(products) { product in
+                        ProductCardView(product: product, size: size)
+                    }
+                }
+                .zIndex(0)
+                .frame(width: size.width)
+                .padding(.top, size.height - cardSize)
+                .offset(y: offsetY)
+                .offset(y: -currentIndex * cardSize)
+
+                .coordinateSpace(name: "SCROLL")
+                .contentShape(Rectangle())
+                .gesture(
+                    DragGesture()
+                        .onChanged { value in
+                            offsetY = value.translation.height
+                        }
+                        .onEnded { value in
+                            let translation = value.translation.height
+                            withAnimation(.easeInOut) {
+                                if translation > 0 {
+                                    if currentIndex > 0 && translation > 250 {
+                                        currentIndex -= 1
+                                    }
+                                } else {
+                                    if currentIndex < CGFloat(products.count - 1)
+                                        && -translation > 250
+                                    {
+                                        currentIndex += 1
+                                    }
+                                }
+                                offsetY = .zero
+                            }
+                        }
+                )
+                .onAppear {
+                    fetchProducts()
+                }
+                .preferredColorScheme(.light)
+            }
+            .navigationBarBackButtonHidden(true)
+        }
+    }
+
+    @ViewBuilder
+    func HeaderView(size: CGSize) -> some View {
+        VStack {
+            HStack {
+                Button {
+                    isActive = false
+                } label: {
+                    Image(systemName: "chevron.left")
+                        .font(.title2.bold())
+                        .foregroundColor(.black)
+                }
+                Spacer()
+                Button {
+                } label: {
+                    Image(systemName: "cart")
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: 30, height: 30)
+                        .foregroundColor(.black)
                 }
             }
-            .navigationTitle("Products")
+            GeometryReader { geo in
+                let width = geo.size.width
+                HStack(spacing: 0) {
+                    ForEach(products) { product in
+                        VStack(spacing: 15) {
+                            Text(product.name)
+                                .font(.title.bold())
+                                .multilineTextAlignment(.center)
+                            Text("\(product.price)₺")
+                                .font(.title)
+
+                            Text("ID: \(product.id)")
+                                .foregroundColor(.black)
+                        }
+                        .frame(width: width)
+                    }
+                }
+                .offset(x: currentIndex * -width)
+                .animation(
+                    .interactiveSpring(response: 0.6, dampingFraction: 0.8, blendDuration: 0.8),
+                    value: currentIndex
+                )
+            }
+            .padding(.top, -5)
         }
-        .onAppear {
-            fetchProducts()
-        }
+        .padding(15)
     }
 
     func fetchProducts() {
@@ -34,12 +136,10 @@ struct ProductListView: View {
             print("❌ No token available in ProductListView")
             return
         }
-
-        guard let url = URL(string: "http://localhost:3000/products") else {
+        guard let url = URL(string: "http://localhost:3000/products?category=\(category)") else {
             print("❌ Invalid /products endpoint")
             return
         }
-
         var request = URLRequest(url: url)
         request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
 
@@ -48,12 +148,10 @@ struct ProductListView: View {
                 print("❌ Product fetch error: \(error.localizedDescription)")
                 return
             }
-
             guard let data = data else {
                 print("⚠️ No product response")
                 return
             }
-
             do {
                 let decoded = try JSONDecoder().decode([Product].self, from: data)
                 DispatchQueue.main.async {
@@ -67,6 +165,34 @@ struct ProductListView: View {
     }
 }
 
-#Preview {
-    ProductListView()
+struct ProductCardView: View {
+    let product: Product
+    var size: CGSize
+
+    var body: some View {
+        let cardSize = size.width * 0.8
+        let maxCardsDisplaySize = size.width * 4
+
+        GeometryReader { proxy in
+            let _size = proxy.size
+            let offset = proxy.frame(in: .named("SCROLL")).minY - (size.height - cardSize)
+            let scale = offset <= 0 ? (offset / maxCardsDisplaySize) : 0
+            let reducedScale = 1 + scale
+            let currentCardScale = offset / cardSize
+
+            Image(product.imageName)
+                .resizable()
+                .aspectRatio(contentMode: .fit)
+                .frame(width: _size.width, height: _size.height)
+                .scaleEffect(
+                    reducedScale < 0 ? 0.001 : reducedScale,
+                    anchor: .init(x: 0.5, y: 1 - (currentCardScale / 2.4))
+                )
+                .scaleEffect(offset > 0 ? 1 + currentCardScale : 1, anchor: .top)
+                .offset(y: offset > 0 ? currentCardScale * 200 : 0)
+                .offset(y: currentCardScale * -130)
+
+        }
+        .frame(height: cardSize)
+    }
 }

@@ -87,11 +87,11 @@ struct LoginScreen: View {
                     let username = userDict["username"] as? String,
                     let role = userDict["role"] as? String
                 {
-
+                    let picture = userDict["googlePicture"] as? String
                     print("✅ Logged in. Token: \(token)")
                     print("👤 User: \(userDict)")
 
-                    let user = User(id: String(id), name: username, role: role)
+                    let user = User(id: String(id), name: username, role: role, picture: picture)
                     DispatchQueue.main.async {
                         auth.storeSession(token: token, user: user)
                     }

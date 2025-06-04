@@ -1,6 +1,6 @@
 import SwiftUI
 
-struct ProductCardView: View {
+struct ProductCard: View {
     let product: Product
 
     var body: some View {
