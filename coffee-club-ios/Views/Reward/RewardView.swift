@@ -9,10 +9,16 @@ import SwiftUI
 
 struct RewardView: View {
     var body: some View {
-        Text(/*@START_MENU_TOKEN@*/"Hello, World!"/*@END_MENU_TOKEN@*/)
+        Rectangle()
+            .fill(Color.purple.opacity(0.2))
+            .frame(height: 150)
+            .overlay(Text("Rewards Box").foregroundColor(.purple))
+            .border(Color.blue)
     }
 }
 
 #Preview {
-    RewardView()
+    let auth = AuthViewModel()
+    return ContentView(auth: auth)
+        .environmentObject(auth)
 }
