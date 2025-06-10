@@ -9,10 +9,36 @@ import SwiftUI
 
 struct FooterView: View {
     var body: some View {
-        Text(/*@START_MENU_TOKEN@*/"Hello, World!"/*@END_MENU_TOKEN@*/)
+        VStack {
+            Spacer()
+            HStack {
+                Spacer()
+                IconButton(systemName: "heart") {
+                    print("Favorites tapped")
+                }
+
+                Spacer()
+
+                IconButton(systemName: "qrcode") {
+                    print("CheckOut tapped")
+                }
+
+                Spacer()
+
+                IconButton(systemName: "person.crop.circle") {
+                    print("Profile tapped")
+                }
+                Spacer()
+            }
+            .padding()
+        }
+        .zIndex(2)
+        .ignoresSafeArea(edges: .bottom)
     }
 }
 
 #Preview {
-    FooterView()
+    let auth = AuthViewModel()
+    return ContentView(auth: auth)
+        .environmentObject(auth)
 }

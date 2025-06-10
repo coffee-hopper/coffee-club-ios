@@ -12,40 +12,15 @@ struct ContentView: View {
         NavigationStack {
             ZStack(alignment: .top) {
                 MainHeaderView(showProfile: $showProfile)
-
-                //MARK: Fixed Footer
-                VStack {
-                    Spacer()
-                    HStack {
-                        Spacer()
-                        Image(systemName: "house")
-                        Spacer()
-                        Image(systemName: "heart")
-                        Spacer()
-                        Image(systemName: "cart")
-                        Spacer()
-                        Image(systemName: "person.crop.circle")
-                        Spacer()
-                    }
-                    .padding()
-                    .background(Color.blue)
-                    .border(Color.pink)
-                }
-                .ignoresSafeArea(edges: .bottom)
+                FooterView()
 
                 VStack(spacing: 0) {
                     Spacer().frame(height: 50)  // Reserve space for top fixed header
 
                     ScrollView(showsIndicators: false) {
                         VStack {
-                            // MARK: Rewards Section
-                            Rectangle()
-                                .fill(Color.purple.opacity(0.2))
-                                .frame(height: 150)
-                                .overlay(Text("Rewards Box").foregroundColor(.purple))
-                                .border(Color.blue)
+                            RewardView()
 
-                            // MARK: Navigate to ProductListView
                             ProductView(
                                 title: selectedCategory,
                                 showAllBinding: $showProductListView,
