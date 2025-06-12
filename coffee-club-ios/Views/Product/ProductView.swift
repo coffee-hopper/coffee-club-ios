@@ -3,12 +3,14 @@ import SwiftUI
 struct ProductView: View {
     let title: String
     @Binding var showAllBinding: Bool
-    @Binding var searchText : String
-    @Binding var category : String
-
+    @Binding var searchText: String
+    @Binding var category: String
 
     @EnvironmentObject var auth: AuthViewModel
     @State private var allProducts: [Product] = []
+
+    @State private var isSearching = false
+    @FocusState private var isTextFieldFocused: Bool
 
     var filteredProducts: [Product] {
         allProducts
@@ -24,38 +26,81 @@ struct ProductView: View {
             // MARK: Categories View
             VStack(spacing: 10) {
                 HStack(spacing: 20) {
-                    Text("Drinks").onTapGesture { category = "drink" }
-                    Text("Foods").onTapGesture { category = "food" }
-                    Text("Teas").onTapGesture { category = "tea" }
-                }
-                .padding()
 
-                Button {
-                    // Optionally bring focus or trigger search logic
-                } label: {
-                    HStack {
-                        Image(systemName: "magnifyingglass")
-                            .foregroundColor(.gray)
-
-                        TextField("Search...", text: $searchText)
-                            .foregroundColor(.primary)
-                            .disableAutocorrection(true)
+                    VStack {
+                        IconButton(systemName: "cup.and.heat.waves.fill") {
+                            category = "drink"
+                        }
+                        Text("Drink")
+                            .foregroundColor(category == "drink" ? .primary : .gray)
                     }
-                    .padding(.horizontal, 12)
-                    .frame(height: 40)
-                    .frame(maxWidth: .infinity)
-                    .background(
-                        RoundedRectangle(cornerRadius: 10)
-                            .strokeBorder(Color.gray, lineWidth: 1)
-                    )
+
+                    Spacer()
+
+                    VStack {
+                        IconButton(systemName: "fork.knife") {
+                            category = "food"
+                        }
+                        Text("Food")
+                            .foregroundColor(category == "food" ? .primary : .gray)
+                    }
+
+                    Spacer()
+
+                    VStack {
+                        IconButton(systemName: "mug") {
+                            category = "tea"
+                        }
+                        Text("Tea")
+                            .foregroundColor(category == "tea" ? .primary : .gray)
+
+                    }
+
                 }
-                .buttonStyle(PlainButtonStyle())
+                .padding(.horizontal, 12)
+
+                HStack(spacing: 10) {
+                    // The animated search input (invisible when collapsed, but takes space)
+                    ZStack(alignment: .leading) {
+                        if isSearching {
+                            TextField("Search...", text: $searchText)
+                                .padding(.horizontal, 10)
+                                .frame(height: 40)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 10)
+                                        .strokeBorder(Color.gray, lineWidth: 1)
+                                )
+                                .focused($isTextFieldFocused)
+                                .transition(.opacity)
+                        } else {
+                            // Keeps width when collapsed but shows nothing
+                            Color.gray
+                                .frame(height: 1)
+                        }
+                    }
+                    .frame(maxWidth: .infinity)
+                    .animation(.easeInOut(duration: 0.3), value: isSearching)
+
+                    IconButton(systemName: "magnifyingglass.circle.fill") {
+                        withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
+                            isSearching.toggle()
+                        }
+
+                        if !isSearching {
+                            isTextFieldFocused = false
+                        } else {
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                                isTextFieldFocused = true
+                            }
+                        }
+                    }
+
+                }
+                .frame(height: 75)
+                .padding(.horizontal, 12)
 
             }
-            .padding()
-            .border(Color.green)
-            
-            
+
             HStack {
                 Text(title.capitalized)
                     .font(.title2.bold())
@@ -120,4 +165,10 @@ struct ProductView: View {
             }
         }.resume()
     }
+}
+
+#Preview {
+    let auth = AuthViewModel()
+    return ContentView(auth: auth)
+        .environmentObject(auth)
 }

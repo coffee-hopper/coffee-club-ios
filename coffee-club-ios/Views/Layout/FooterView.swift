@@ -13,7 +13,7 @@ struct FooterView: View {
             Spacer()
             HStack {
                 Spacer()
-                IconButton(systemName: "heart") {
+                IconButton(systemName: "heart.fill") {
                     print("Favorites tapped")
                 }
 
@@ -25,12 +25,12 @@ struct FooterView: View {
 
                 Spacer()
 
-                IconButton(systemName: "person.crop.circle") {
-                    print("Profile tapped")
+                IconButton(systemName: "cart.fill") {
+                    print("Cart tapped")
                 }
                 Spacer()
             }
-            .padding()
+            .padding(.vertical, 22)
         }
         .zIndex(2)
         .ignoresSafeArea(edges: .bottom)
