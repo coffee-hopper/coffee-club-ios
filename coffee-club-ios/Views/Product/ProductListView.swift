@@ -16,13 +16,12 @@ struct ProductListView: View {
             let cardSize = size.width * 1
 
             ZStack {
-                // Background Gradient
                 LinearGradient(
                     colors: [
                         .clear,
-                        Color.brown.opacity(0.2),
-                        Color.brown.opacity(0.45),
-                        Color.brown,
+                        Color("Primary").opacity(0.1),
+                        Color("Primary").opacity(0.35),
+                        Color("Primary").opacity(0.65),
                     ],
                     startPoint: .top,
                     endPoint: .bottom
@@ -76,7 +75,6 @@ struct ProductListView: View {
                 .onAppear {
                     fetchProducts()
                 }
-                .preferredColorScheme(.light)
             }
             .navigationBarBackButtonHidden(true)
         }
@@ -86,22 +84,23 @@ struct ProductListView: View {
     func HeaderView(size: CGSize) -> some View {
         VStack {
             HStack {
-                Button {
-                    isActive = false
-                } label: {
-                    Image(systemName: "chevron.left")
-                        .font(.title2.bold())
-                        .foregroundColor(.black)
-                }
+                IconButton(
+                    systemName: "chevron.left",
+                    action: {
+                        isActive = false
+                    },
+                    isFilled: false
+                )
+
                 Spacer()
-                Button {
-                } label: {
-                    Image(systemName: "cart")
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                        .frame(width: 30, height: 30)
-                        .foregroundColor(.black)
-                }
+
+                IconButton(
+                    systemName: "cart",
+                    action: {
+                        print("cart_tapped @ProductListView")
+                    },
+                    isFilled: false
+                )
             }
             GeometryReader { geo in
                 let width = geo.size.width
@@ -115,7 +114,7 @@ struct ProductListView: View {
                                 .font(.title)
 
                             Text("ID: \(product.id)")
-                                .foregroundColor(.black)
+                                .foregroundColor(Color("TextPrimary"))
                         }
                         .frame(width: width)
                     }

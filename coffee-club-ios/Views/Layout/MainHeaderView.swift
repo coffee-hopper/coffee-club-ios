@@ -1,10 +1,3 @@
-//
-//  MainHeaderView.swift
-//  coffee-club-ios
-//
-//  Created by Bahadır Pekcan on 30.05.2025.
-//
-
 import SwiftUI
 
 struct MainHeaderView: View {
@@ -28,24 +21,27 @@ struct MainHeaderView: View {
                             .frame(width: 40, height: 40)
                             .clipShape(Circle())
                         } else {
-                            Image(systemName: "person.crop.circle.fill")
-                                .resizable()
-                                .frame(width: 40, height: 40)
-                                .foregroundColor(.gray)
+                            IconButton(
+                                systemName: "person.crop.circle.fill",
+                                action: {
+                                    print("Profile_tapped")
+                                },
+                                isFilled: false
+                            )
                         }
                     }
 
                     Spacer()
 
-                    Button(action: {
-                        print("Notifications tapped")
-                    }) {
-                        Image(systemName: "bell.fill")
-                            .resizable()
-                            .frame(width: 24, height: 28)
-                            .foregroundColor(.gray)
-                    }
+                    IconButton(
+                        systemName: "bell.fill",
+                        action: {
+                            print("Notifications_tapped")
+                        },
+                        isFilled: false
+                    )
                 }
+
                 .padding(.horizontal, 20)
 
                 Spacer()

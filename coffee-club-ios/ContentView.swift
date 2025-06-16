@@ -15,7 +15,7 @@ struct ContentView: View {
                 FooterView()
 
                 VStack(spacing: 0) {
-                    Spacer().frame(height: 50)  // Reserve space for top fixed header
+                    Spacer().frame(height: 50)
 
                     ScrollView(showsIndicators: false) {
                         VStack {

@@ -1,15 +1,10 @@
-//
-//  coffee_club_iosApp.swift
-//  coffee-club-ios
-//
-//  Created by Bahadır Pekcan on 8.05.2025.
-//
 import GoogleSignIn
 import SwiftUI
 
 @main
 struct coffee_club_iosApp: App {
     @StateObject private var auth = AuthViewModel()
+    @AppStorage("appTheme") private var appTheme: AppTheme = .system
 
     var body: some Scene {
         WindowGroup {
@@ -22,6 +17,7 @@ struct coffee_club_iosApp: App {
                         .environmentObject(auth)
                 }
             }
+            .preferredColorScheme(appTheme.colorScheme)
             .onOpenURL { url in
                 GIDSignIn.sharedInstance.handle(url)
             }

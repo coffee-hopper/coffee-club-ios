@@ -1,16 +1,10 @@
-//
-//  IconButton.swift
-//  coffee-club-ios
-//
-//  Created by Bahadır Pekcan on 4.06.2025.
-//
 import SwiftUI
 
 struct IconButton: View {
     let systemName: String
     let action: () -> Void
+    var isFilled: Bool = true
 
-    @Environment(\.colorScheme) var colorScheme
     @State private var isPressed = false
 
     var body: some View {
@@ -26,19 +20,20 @@ struct IconButton: View {
             Image(systemName: systemName)
                 .resizable()
                 .scaledToFit()
-                .frame(width: 28, height: 28)
-                .padding(12)
-                .background(dynamicColor.opacity(0.15))
+                .frame(width: isFilled ? 28 : 28, height: isFilled ? 28 : 28)
+                .padding(isFilled ? 12 : 2)
+                .background(
+                    isFilled ? Color("Primary") : Color.clear
+                )
                 .clipShape(Circle())
-                .foregroundColor(dynamicColor)
-                .scaleEffect(isPressed ? 0.85 : 1.0)
-                .shadow(color: dynamicColor.opacity(0.25), radius: isPressed ? 1 : 4)
+                .foregroundColor(Color("Secondary"))
+                .scaleEffect(isFilled && isPressed ? 0.90 : 1.0)
+                .shadow(
+                    color: isFilled ? Color("Primary").opacity(0.7) : .clear,
+                    radius: isPressed ? 8 : 1
+                )
         }
         .buttonStyle(PlainButtonStyle())
         .zIndex(2)
-    }
-
-    private var dynamicColor: Color {
-        colorScheme == .dark ? Color.green.opacity(0.9) : Color.mint
     }
 }

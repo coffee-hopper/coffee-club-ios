@@ -4,7 +4,7 @@ struct ProductCard: View {
     let product: Product
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .center, spacing: 8) {
             Image(product.imageName)
                 .resizable()
                 .scaledToFit()
@@ -15,18 +15,17 @@ struct ProductCard: View {
                 Text(product.name)
                     .font(.subheadline)
                     .lineLimit(1)
-                    .foregroundColor(.primary)
-
-                Spacer()
+                    .foregroundColor(Color.accentLight)
 
                 Text("\(product.price)₺")
                     .font(.subheadline.bold())
-                    .foregroundColor(.green)
+                    .foregroundColor(Color.greenEnergic)
             }
         }
         .padding()
         .background(
-            RoundedRectangle(cornerRadius: 12).stroke(Color.gray.opacity(0.4), lineWidth: 1)
+            RoundedRectangle(cornerRadius: 12)
+                .fill(Color.accentDark).opacity(0.85)
         )
         .frame(width: 140, height: 180)
     }

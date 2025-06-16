@@ -22,110 +22,158 @@ struct ProductView: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading) {
-            // MARK: Categories View
-            VStack(spacing: 10) {
-                HStack(spacing: 20) {
-
-                    VStack {
-                        IconButton(systemName: "cup.and.heat.waves.fill") {
-                            category = "drink"
-                        }
-                        Text("Drink")
-                            .foregroundColor(category == "drink" ? .primary : .gray)
-                    }
-
-                    Spacer()
-
-                    VStack {
-                        IconButton(systemName: "fork.knife") {
-                            category = "food"
-                        }
-                        Text("Food")
-                            .foregroundColor(category == "food" ? .primary : .gray)
-                    }
-
-                    Spacer()
-
-                    VStack {
-                        IconButton(systemName: "mug") {
-                            category = "tea"
-                        }
-                        Text("Tea")
-                            .foregroundColor(category == "tea" ? .primary : .gray)
-
-                    }
-
-                }
-                .padding(.horizontal, 12)
-
-                HStack(spacing: 10) {
-                    // The animated search input (invisible when collapsed, but takes space)
-                    ZStack(alignment: .leading) {
-                        if isSearching {
-                            TextField("Search...", text: $searchText)
-                                .padding(.horizontal, 10)
-                                .frame(height: 40)
-                                .background(
-                                    RoundedRectangle(cornerRadius: 10)
-                                        .strokeBorder(Color.gray, lineWidth: 1)
-                                )
-                                .focused($isTextFieldFocused)
-                                .transition(.opacity)
-                        } else {
-                            // Keeps width when collapsed but shows nothing
-                            Color.gray
-                                .frame(height: 1)
-                        }
-                    }
-                    .frame(maxWidth: .infinity)
-                    .animation(.easeInOut(duration: 0.3), value: isSearching)
-
-                    IconButton(systemName: "magnifyingglass.circle.fill") {
-                        withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
-                            isSearching.toggle()
-                        }
-
-                        if !isSearching {
+        ZStack {
+            if isSearching {
+                Color.clear
+                    .contentShape(Rectangle())
+                    .onTapGesture {
+                        withAnimation {
+                            isSearching = false
                             isTextFieldFocused = false
-                        } else {
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                                isTextFieldFocused = true
-                            }
+                            searchText = ""
                         }
                     }
-
-                }
-                .frame(height: 75)
-                .padding(.horizontal, 12)
-
+                    .ignoresSafeArea()
             }
 
-            HStack {
-                Text(title.capitalized)
-                    .font(.title2.bold())
-                Spacer()
-                Button("See All \(title.capitalized)") {
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
-                        showAllBinding = true
-                    }
-                }
-                .foregroundColor(.blue)
-            }
-            .padding(.horizontal)
+            VStack(alignment: .leading) {
+                // MARK: Categories View
+                VStack(spacing: 10) {
+                    HStack(spacing: 20) {
 
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 16) {
-                    ForEach(filteredProducts) { product in
-                        ProductCard(product: product)
+                        VStack {
+                            IconButton(systemName: "cup.and.heat.waves.fill") {
+                                category = "drink"
+                            }
+                            Text("Drink")
+                                .foregroundColor(
+                                    category == "drink"
+                                        ? Color("TextPrimary") : Color("TextPrimary").opacity(0.45)
+                                )
+                        }
+
+                        Spacer()
+
+                        VStack {
+                            IconButton(systemName: "fork.knife") {
+                                category = "food"
+                            }
+                            Text("Food")
+                                .foregroundColor(
+                                    category == "food"
+                                        ? Color("TextPrimary") : Color("TextPrimary").opacity(0.45)
+                                )
+                        }
+
+                        Spacer()
+
+                        VStack {
+                            IconButton(systemName: "mug") {
+                                category = "tea"
+                            }
+                            Text("Tea")
+                                .foregroundColor(
+                                    category == "tea"
+                                        ? Color("TextPrimary") : Color("TextPrimary").opacity(0.45)
+                                )
+                        }
                     }
+                    .padding(.horizontal, 12)
+
+                    HStack(spacing: 10) {
+                        ZStack {
+                            //MARK: Invisible tap area to trigger search
+                            Color.clear
+                                .frame(height: 75)
+                                .contentShape(Rectangle())
+                                .onTapGesture {
+                                    if !isSearching {
+                                        withAnimation(.spring(response: 0.3, dampingFraction: 0.6))
+                                        {
+                                            isSearching = true
+                                        }
+                                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                                            isTextFieldFocused = true
+                                        }
+                                    } else {
+                                        withAnimation {
+                                            isSearching = false
+                                            isTextFieldFocused = false
+                                            searchText = ""
+                                        }
+                                    }
+                                }
+
+                            //MARK: SearchBar
+                            HStack(spacing: 10) {
+                                if isSearching {
+                                    TextField("Search...", text: $searchText)
+                                        .padding(.horizontal, 10)
+                                        .frame(height: 40)
+                                        .background(
+                                            RoundedRectangle(cornerRadius: 10)
+                                                .strokeBorder(Color("TextSecondary"), lineWidth: 1)
+                                        )
+                                        .focused($isTextFieldFocused)
+                                        .transition(.opacity)
+                                } else {
+                                    Color("TextSecondary").frame(height: 1)
+                                }
+
+                                IconButton(
+                                    systemName: "magnifyingglass.circle.fill",
+                                    action: {
+                                        withAnimation(.spring(response: 0.8, dampingFraction: 0.8))
+                                        {
+                                            isSearching.toggle()
+                                        }
+
+                                        if !isSearching {
+                                            isTextFieldFocused = false
+                                            searchText = ""
+                                        } else {
+                                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                                                isTextFieldFocused = true
+                                            }
+                                        }
+                                    }
+                                )
+                            }
+                            .frame(height: 75)
+                            .padding(.horizontal, 12)
+                        }
+                    }
+                    .frame(height: 75)
+                    .padding(.horizontal, 12)
+
+                }
+
+                HStack {
+                    Text(title.capitalized)
+                        .font(.title2.bold())
+                    Spacer()
+                    Button("See All \(title.capitalized)s") {
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+                            showAllBinding = true
+                        }
+                    }
+                    .foregroundColor(Color("TextPrimary"))
                 }
                 .padding(.horizontal)
+
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 16) {
+                        ForEach(filteredProducts) { product in
+                            ProductCard(product: product)
+                        }
+                    }
+                    .padding(.horizontal)
+                }
             }
-        }
-        .padding(.vertical)
-        .onAppear {
-            fetchProducts()
+            .padding(.vertical)
+            .onAppear {
+                fetchProducts()
+            }
         }
     }
 

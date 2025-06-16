@@ -4,25 +4,27 @@ struct ProfileView: View {
     @EnvironmentObject var auth: AuthViewModel
     @Binding var isActive: Bool
 
+    @AppStorage("appTheme") private var appTheme: AppTheme = .system
+    @Environment(\.colorScheme) private var systemColorScheme
+
     @State private var showLogoutConfirmation = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             // MARK: Header
             HStack {
-                Button(action: {
-                    isActive = false
-                }) {
-                    Image(systemName: "chevron.left")
-                        .font(.title3.weight(.medium))
-                        .padding(8)
-                        .background(Color.gray.opacity(0.15))
-                        .clipShape(Circle())
-                }
+                IconButton(
+                    systemName: "chevron.left",
+                    action: {
+                        isActive = false
+                    },
+                    isFilled: false
+                )
 
                 Text("Hi, \(auth.user?.name ?? "guest")!")
                     .font(.title2.bold())
                     .padding(.leading, 4)
+                    .foregroundColor(Color("TextPrimary"))
 
                 Spacer()
             }
@@ -44,28 +46,13 @@ struct ProfileView: View {
                     Image(systemName: "person.crop.circle.fill")
                         .resizable()
                         .frame(width: 80, height: 80)
-                        .foregroundColor(.gray)
+                        .foregroundColor(Color("Secondary"))
                 }
 
                 Text(auth.user?.name ?? "Guest")
                     .font(.headline)
-
-                Text("☕ Free filter coffees: 2")
-                    .font(.subheadline.bold())
-                    .padding(.top, 20)
-
-                VStack {
-                    Text("3 / 5 to next free one")
-                        .font(.caption)
-                        .foregroundColor(.gray)
-
-                    ProgressView(value: 3, total: 5)
-                        .progressViewStyle(LinearProgressViewStyle(tint: .brown))
-                        .padding(.horizontal, 80)
-                }
-                .padding(.vertical, 10)
-
             }
+            .frame(maxWidth: .infinity)
 
             // MARK: Settings List
             List {
@@ -79,11 +66,35 @@ struct ProfileView: View {
                         Label("Language", systemImage: "globe")
                         Spacer()
                         Text(Locale.current.identifier)
-                            .foregroundColor(.gray)
+                            .foregroundColor(Color("TextSecondary"))
                     }
 
-                    Toggle(isOn: .constant(false)) {
-                        Label("Dark Mode", systemImage: "moon.fill")
+                    HStack {
+                        Label("AppTheme", systemImage: "paintbrush")
+                        Spacer()
+
+                        Menu {
+                            ForEach(AppTheme.allCases) { theme in
+                                Button {
+                                    appTheme = theme
+                                } label: {
+                                    Label(theme.displayName, systemImage: theme.iconName)
+                                }
+                            }
+                        } label: {
+                            HStack(spacing: 4) {
+                                Text(appTheme.displayName)
+                                Image(systemName: "chevron.down")
+                                    .font(.system(size: 12, weight: .semibold))
+                            }
+                            .foregroundColor(.primary)
+                            .padding(.vertical, 4)
+                            .padding(.horizontal, 6)
+                            .background(
+                                RoundedRectangle(cornerRadius: 6)
+                                    .fill(Color.gray.opacity(0.1))
+                            )
+                        }
                     }
                 }
 
@@ -97,7 +108,7 @@ struct ProfileView: View {
                     } label: {
                         Label("Logout", systemImage: "arrow.backward.circle")
                     }
-                    .foregroundColor(.red)
+                    .foregroundColor(Color("AccentRed"))
                 }
             }
             .confirmationDialog(

@@ -22,7 +22,6 @@ class AuthViewModel: ObservableObject {
         GIDSignIn.sharedInstance.restorePreviousSignIn { user, error in
             if let user = user {
                 print("🔁 Google auto sign-in restored for: \(user.profile?.email ?? "")")
-                // Optionally use user.idToken?.tokenString here again
             } else {
                 print("❌ Google auto sign-in failed or not available")
             }
@@ -36,7 +35,6 @@ class AuthViewModel: ObservableObject {
         self.user = user
         self.isLoggedIn = true
 
-        // Save securely
         keychain["jwt"] = token
         if let encoded = try? JSONEncoder().encode(user) {
             keychain["user"] = encoded.base64EncodedString()

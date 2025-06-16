@@ -1,10 +1,3 @@
-//
-//  FooterView.swift
-//  coffee-club-ios
-//
-//  Created by Bahadır Pekcan on 4.06.2025.
-//
-
 import SwiftUI
 
 struct FooterView: View {
@@ -20,13 +13,13 @@ struct FooterView: View {
                 Spacer()
 
                 IconButton(systemName: "qrcode") {
-                    print("CheckOut tapped")
+                    print("QR tapped")
                 }
 
                 Spacer()
 
                 IconButton(systemName: "cart.fill") {
-                    print("Cart tapped")
+                    print("CheckOut tapped")
                 }
                 Spacer()
             }
