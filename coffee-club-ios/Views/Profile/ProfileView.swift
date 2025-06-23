@@ -51,6 +51,8 @@ struct ProfileView: View {
 
                 Text(auth.user?.name ?? "Guest")
                     .font(.headline)
+                Text(auth.user?.role ?? "role")
+                    .font(.headline)
             }
             .frame(maxWidth: .infinity)
 

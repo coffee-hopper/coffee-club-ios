@@ -12,9 +12,7 @@ struct FooterView: View {
 
                 Spacer()
 
-                IconButton(systemName: "qrcode") {
-                    print("QR tapped")
-                }
+                QRScanner()
 
                 Spacer()
 

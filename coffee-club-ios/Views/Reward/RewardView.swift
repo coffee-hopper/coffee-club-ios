@@ -2,13 +2,19 @@ import SwiftUI
 
 struct RewardView: View {
     @EnvironmentObject var auth: AuthViewModel
-    @State private var loyaltyStats: LoyaltyStats? = LoyaltyStats(
-        stars: 1,
-        rewards: 2,
-        remainingToNext: 3
+    @State private var loyaltyStats = LoyaltyStats(
+        stars: 0,
+        rewards: 0,
+        remainingToNext: 0,
+        requiredStars: 15
     )
 
+    private var currentDrinkStack: Int {
+        loyaltyStats.requiredStars - loyaltyStats.remainingToNext
+    }
+
     var body: some View {
+
         HStack(spacing: 20) {
             Spacer()
 
@@ -19,12 +25,12 @@ struct RewardView: View {
                 HStack(alignment: .center, spacing: 4) {
                     Image(systemName: "star.fill")
                         .foregroundColor(.yellow)
-                    Text("\(loyaltyStats?.stars ?? 0)")
+                    Text("\(loyaltyStats.stars )")
                         .font(.system(size: 32, weight: .bold))
                         .foregroundColor(.white)
                 }
 
-                Text("\(loyaltyStats?.rewards ?? 0) free Coffee")
+                Text("\(loyaltyStats.rewards) free Coffee")
                     .foregroundColor(Color("GreenEnergic").opacity(0.7))
                     .font(.footnote)
             }
@@ -39,11 +45,18 @@ struct RewardView: View {
                 Circle()
                     .trim(
                         from: 0,
-                        to: CGFloat(min(CGFloat(loyaltyStats?.remainingToNext ?? 0) / 15.0, 1.0))
+                        to: CGFloat(
+                            min(
+                                CGFloat(currentDrinkStack)
+                                    / CGFloat(loyaltyStats.requiredStars),
+                                1.0
+                            )
+                        )
                     )
+
                     .stroke(Color("GreenEnergic"), lineWidth: 8)
                     .rotationEffect(Angle(degrees: -90))
-                    .animation(.easeOut(duration: 0.8), value: loyaltyStats?.stars)
+                    .animation(.easeOut(duration: 0.8), value: loyaltyStats.stars)
 
                 VStack {
                     Image("default_coffee")
@@ -52,7 +65,7 @@ struct RewardView: View {
                         .frame(width: 80, height: 80)
                         .padding(.top, -10)
 
-                    Text("\(loyaltyStats?.remainingToNext ?? 0)/15")
+                    Text("\(currentDrinkStack)/\(loyaltyStats.requiredStars)")
                         .font(.footnote)
                         .foregroundColor(Color("TextSecondary"))
                 }

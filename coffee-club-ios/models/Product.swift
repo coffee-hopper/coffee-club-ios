@@ -10,6 +10,10 @@ struct Product: Codable, Identifiable {
     let loyaltyMultiplier: Int
 }
 
+struct ProductRef: Codable {
+    let id: Int
+}
+
 extension Product {
     var imageName: String {
         switch id {
