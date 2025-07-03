@@ -16,26 +16,11 @@ struct ProductListView: View {
             let cardSize = size.width * 1
 
             ZStack {
-                LinearGradient(
-                    colors: [
-                        .clear,
-                        Color("Primary").opacity(0.1),
-                        Color("Primary").opacity(0.35),
-                        Color("Primary").opacity(0.65),
-                    ],
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
-                .frame(height: 300)
-                .frame(maxHeight: .infinity, alignment: .bottom)
-                .ignoresSafeArea()
-
                 // Header View
                 HeaderView(size: size)
-                    .zIndex(1)
+                    .zIndex(2)
 
                 // Coffee Cards
-
                 VStack(spacing: 0) {
                     ForEach(products) { product in
                         ProductCardView(product: product, size: size)
@@ -46,13 +31,13 @@ struct ProductListView: View {
                 .padding(.top, size.height - cardSize)
                 .offset(y: offsetY)
                 .offset(y: -currentIndex * cardSize)
-
                 .coordinateSpace(name: "SCROLL")
                 .contentShape(Rectangle())
                 .gesture(
                     DragGesture()
                         .onChanged { value in
                             offsetY = value.translation.height
+
                         }
                         .onEnded { value in
                             let translation = value.translation.height
@@ -89,7 +74,8 @@ struct ProductListView: View {
                     action: {
                         isActive = false
                     },
-                    isFilled: false
+                    isFilled: false,
+                    iconSize: 28
                 )
 
                 Spacer()
@@ -99,7 +85,8 @@ struct ProductListView: View {
                     action: {
                         print("cart_tapped @ProductListView")
                     },
-                    isFilled: false
+                    isFilled: false,
+                    iconSize: 30
                 )
             }
             GeometryReader { geo in
@@ -154,7 +141,7 @@ struct ProductListView: View {
             do {
                 let decoded = try JSONDecoder().decode([Product].self, from: data)
                 DispatchQueue.main.async {
-                    self.products = decoded
+                    self.products = decoded.sorted { $0.id < $1.id }
                 }
                 print("✅ Products loaded: \(decoded.count)")
             } catch {
@@ -169,8 +156,9 @@ struct ProductCardView: View {
     var size: CGSize
 
     var body: some View {
-        let cardSize = size.width * 0.8
-        let maxCardsDisplaySize = size.width * 4
+        let cardSize = size.width  //cup width
+        let cardHeight = CGFloat(400)
+        let maxCardsDisplaySize = size.width * 4  // card stack count between the current card
 
         GeometryReader { proxy in
             let _size = proxy.size
@@ -192,6 +180,6 @@ struct ProductCardView: View {
                 .offset(y: currentCardScale * -130)
 
         }
-        .frame(height: cardSize)
+        .frame(height: cardHeight)
     }
 }

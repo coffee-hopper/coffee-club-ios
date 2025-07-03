@@ -1,6 +1,13 @@
 import SwiftUI
 
 struct FooterView: View {
+    @Binding var isPresentingScanner: Bool
+    @Binding var navigateToPayment: Bool
+    @Binding var createdOrderId: Int?
+    @Binding var createdOrderAmount: Double?
+
+    @Binding var showCartView: Bool
+
     var body: some View {
         VStack {
             Spacer()
@@ -12,12 +19,18 @@ struct FooterView: View {
 
                 Spacer()
 
-                QRScanner()
+                QRScanner(
+                    isPresentingScanner: $isPresentingScanner,
+                    navigateToPayment: $navigateToPayment,
+                    createdOrderId: $createdOrderId,
+                    createdOrderAmount: $createdOrderAmount
+                )
 
                 Spacer()
 
                 IconButton(systemName: "cart.fill") {
-                    print("CheckOut tapped")
+                    print("Cart tapped")
+                    showCartView = true
                 }
                 Spacer()
             }

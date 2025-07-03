@@ -4,6 +4,7 @@ struct IconButton: View {
     let systemName: String
     let action: () -> Void
     var isFilled: Bool = true
+    var iconSize : CGFloat = 28
 
     @State private var isPressed = false
 
@@ -20,14 +21,14 @@ struct IconButton: View {
             Image(systemName: systemName)
                 .resizable()
                 .scaledToFit()
-                .frame(width: isFilled ? 28 : 28, height: isFilled ? 28 : 28)
+                .frame(width: isFilled ? 28 : iconSize, height: isFilled ? 28 : iconSize)
                 .padding(isFilled ? 12 : 2)
                 .background(
                     isFilled ? Color("Primary") : Color.clear
                 )
                 .clipShape(Circle())
                 .foregroundColor(Color("Secondary"))
-                .scaleEffect(isFilled && isPressed ? 0.90 : 1.0)
+                .scaleEffect(isFilled && isPressed ? 0.90 : 0.90)
                 .shadow(
                     color: isFilled ? Color("Primary").opacity(0.7) : .clear,
                     radius: isPressed ? 8 : 1

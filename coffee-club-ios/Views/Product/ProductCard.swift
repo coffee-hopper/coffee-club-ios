@@ -2,31 +2,50 @@ import SwiftUI
 
 struct ProductCard: View {
     let product: Product
+    @EnvironmentObject var cart: CartManager
 
     var body: some View {
-        VStack(alignment: .center, spacing: 8) {
-            Image(product.imageName)
-                .resizable()
-                .scaledToFit()
-                .frame(height: 80)
-                .cornerRadius(8)
+        ZStack(alignment: .center) {
+            TaperedCardShape(cornerRadius: 50)
+                .fill(Color.accentColor.opacity(0.1))
+                .frame(width: 230, height: 200)
 
-            HStack {
+            VStack(spacing: 8) {
+                Image(product.imageName)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(height: 150)
+                    .rotationEffect(.degrees(-8))
+
                 Text(product.name)
-                    .font(.subheadline)
+                    .font(.system(size: 14))
                     .lineLimit(1)
-                    .foregroundColor(Color.accentLight)
 
-                Text("\(product.price)₺")
+                Text(String(format: "%.2f ₺", product.price))
                     .font(.subheadline.bold())
-                    .foregroundColor(Color.greenEnergic)
+                    .foregroundColor(.accent)
+
+                IconButton(
+                    systemName: "plus",
+
+                    action: {
+                        cart.addToCart(product)
+                        print("cart tapped product card")
+                    },
+                    isFilled: false,
+                    iconSize: 14
+                )
+                .background(
+                    TaperedCardShape(cornerRadius: 6)
+                        .fill(Color.textPrimary.opacity(0.9))
+                        .frame(width: 34, height: 25)
+                )
+                .foregroundColor(.white)
             }
+            .offset(y: -5)
+
         }
-        .padding()
-        .background(
-            RoundedRectangle(cornerRadius: 12)
-                .fill(Color.accentDark).opacity(0.85)
-        )
-        .frame(width: 140, height: 180)
+        .frame(width: 220, height: 250)
+
     }
 }

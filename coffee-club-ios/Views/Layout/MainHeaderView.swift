@@ -3,6 +3,7 @@ import SwiftUI
 struct MainHeaderView: View {
     @EnvironmentObject var auth: AuthViewModel
     @Binding var showProfile: Bool
+    @Binding var showNotification: Bool
 
     var body: some View {
         ZStack {
@@ -36,9 +37,11 @@ struct MainHeaderView: View {
                     IconButton(
                         systemName: "bell.fill",
                         action: {
+                            showNotification = true
                             print("Notifications_tapped")
                         },
-                        isFilled: false
+                        isFilled: false,
+                        iconSize: 28
                     )
                 }
 

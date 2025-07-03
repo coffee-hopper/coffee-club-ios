@@ -38,7 +38,7 @@ struct ProductView: View {
 
             VStack(alignment: .leading) {
                 // MARK: Categories View
-                VStack(spacing: 10) {
+                VStack(spacing: 5) {
                     HStack(spacing: 20) {
 
                         VStack {
@@ -121,7 +121,7 @@ struct ProductView: View {
                                 }
 
                                 IconButton(
-                                    systemName: "magnifyingglass.circle.fill",
+                                    systemName: "magnifyingglass",
                                     action: {
                                         withAnimation(.spring(response: 0.8, dampingFraction: 0.8))
                                         {
@@ -144,25 +144,24 @@ struct ProductView: View {
                         }
                     }
                     .frame(height: 75)
-                    .padding(.horizontal, 12)
 
                 }
 
-                HStack {
-                    Text(title.capitalized)
-                        .font(.title2.bold())
+                HStack(alignment: .center) {
+                    Text("Special for you")
+                        .font(.system(size: 20).bold())
                     Spacer()
                     Button("See All \(title.capitalized)s") {
                         DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
                             showAllBinding = true
                         }
                     }
-                    .foregroundColor(Color("TextPrimary"))
+                    .foregroundColor(Color(.accent))
+                    .font(.system(size: 12).bold())
                 }
-                .padding(.horizontal)
 
                 ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 16) {
+                    HStack(spacing: 32) {
                         ForEach(filteredProducts) { product in
                             ProductCard(product: product)
                         }
