@@ -1,10 +1,3 @@
-//
-//  LoginScreen.swift
-//  coffee-club-ios
-//
-//  Created by Bahadır Pekcan on 19.05.2025.
-//
-
 import GoogleSignIn
 import SwiftUI
 
@@ -13,19 +6,20 @@ struct LoginScreen: View {
 
     var body: some View {
         VStack {
-            Text("Log in Screen")
+            Text("Welcome")
                 .font(.title)
-                .padding()
+                .padding(.bottom, 40)
 
             Button(action: handleSignupButton) {
                 Text("Log in with Google")
                     .padding()
                     .frame(maxWidth: .infinity)
-                    .background(Color.blue)
-                    .foregroundColor(.white)
+                    .background(Color("AccentBlue"))
+                    .foregroundColor(Color("TextPrimary"))
                     .cornerRadius(12)
             }
             .padding(.horizontal)
+
         }
         .padding(.vertical, 80)
     }
@@ -87,11 +81,11 @@ struct LoginScreen: View {
                     let username = userDict["username"] as? String,
                     let role = userDict["role"] as? String
                 {
-
+                    let picture = userDict["googlePicture"] as? String
                     print("✅ Logged in. Token: \(token)")
                     print("👤 User: \(userDict)")
 
-                    let user = User(id: String(id), name: username, role: role)
+                    let user = User(id: String(id), name: username, role: role, picture: picture)
                     DispatchQueue.main.async {
                         auth.storeSession(token: token, user: user)
                     }

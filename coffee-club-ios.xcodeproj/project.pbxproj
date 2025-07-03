@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		E0FB27E12E094EAB00A1D10B /* CodeScanner in Frameworks */ = {isa = PBXBuildFile; productRef = E0FB27E02E094EAB00A1D10B /* CodeScanner */; };
 		E0FB5D812DDB3E340080BDA3 /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = E0FB5D802DDB3E340080BDA3 /* GoogleSignIn */; };
 		E0FB5D832DDB3E340080BDA3 /* GoogleSignInSwift in Frameworks */ = {isa = PBXBuildFile; productRef = E0FB5D822DDB3E340080BDA3 /* GoogleSignInSwift */; };
 		E0FB5D8C2DDCAC000080BDA3 /* KeychainAccess in Frameworks */ = {isa = PBXBuildFile; productRef = E0FB5D8B2DDCAC000080BDA3 /* KeychainAccess */; };
@@ -42,6 +43,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				E0FB27E12E094EAB00A1D10B /* CodeScanner in Frameworks */,
 				E0FB5D812DDB3E340080BDA3 /* GoogleSignIn in Frameworks */,
 				E0FB5D832DDB3E340080BDA3 /* GoogleSignInSwift in Frameworks */,
 				E0FB5D8C2DDCAC000080BDA3 /* KeychainAccess in Frameworks */,
@@ -82,6 +84,7 @@
 				E0FB5D802DDB3E340080BDA3 /* GoogleSignIn */,
 				E0FB5D822DDB3E340080BDA3 /* GoogleSignInSwift */,
 				E0FB5D8B2DDCAC000080BDA3 /* KeychainAccess */,
+				E0FB27E02E094EAB00A1D10B /* CodeScanner */,
 			);
 			productName = "coffee-club-ios";
 			productReference = E0D56C3D2DD34F4100A9603A /* coffee-club-ios.app */;
@@ -114,6 +117,7 @@
 			packageReferences = (
 				E0FB5D7F2DDB3E340080BDA3 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */,
 				E0FB5D8A2DDCAC000080BDA3 /* XCRemoteSwiftPackageReference "KeychainAccess" */,
+				E0FB27DF2E094EAB00A1D10B /* XCRemoteSwiftPackageReference "CodeScanner" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = E0D56BE62DCCB3A900A9603A;
@@ -275,6 +279,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "coffee-club-ios/Info.plist";
+				INFOPLIST_KEY_NSCameraUsageDescription = "We need the camera to scan QR codes.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -303,6 +308,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "coffee-club-ios/Info.plist";
+				INFOPLIST_KEY_NSCameraUsageDescription = "We need the camera to scan QR codes.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -345,6 +351,14 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		E0FB27DF2E094EAB00A1D10B /* XCRemoteSwiftPackageReference "CodeScanner" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/twostraws/CodeScanner";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.5.2;
+			};
+		};
 		E0FB5D7F2DDB3E340080BDA3 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/google/GoogleSignIn-iOS.git";
@@ -364,6 +378,11 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		E0FB27E02E094EAB00A1D10B /* CodeScanner */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = E0FB27DF2E094EAB00A1D10B /* XCRemoteSwiftPackageReference "CodeScanner" */;
+			productName = CodeScanner;
+		};
 		E0FB5D802DDB3E340080BDA3 /* GoogleSignIn */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = E0FB5D7F2DDB3E340080BDA3 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */;

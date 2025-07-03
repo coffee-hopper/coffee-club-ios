@@ -5,7 +5,7 @@ class GoogleAuthService: NSObject {
     private var session: ASWebAuthenticationSession?
 
     func startLogin(completion: @escaping (String?, User?) -> Void) {
-        guard let url = URL(string: "http://172.20.10.2:3000/auth/google") else {
+        guard let url = URL(string: "\(API.baseURL)/auth/google") else {
             completion(nil, nil)
             return
         }
@@ -13,7 +13,7 @@ class GoogleAuthService: NSObject {
         var request = URLRequest(url: url)
         request.setValue("ios", forHTTPHeaderField: "mobile-auth")
 
-        // Step 1: Get Google login URL from backend
+        //1: Get Google login URL from backend
         URLSession.shared.dataTask(with: url) { data, _, _ in
             guard let data = data,
                 let response = try? JSONDecoder().decode([String: String].self, from: data),
@@ -24,7 +24,7 @@ class GoogleAuthService: NSObject {
                 return
             }
 
-            // Step 2: Launch Google OAuth session
+            //2: Launch Google OAuth session
             DispatchQueue.main.async {
                 self.session = ASWebAuthenticationSession(
                     url: loginURL,
@@ -42,7 +42,6 @@ class GoogleAuthService: NSObject {
                         return
                     }
 
-                    // Step 3: Fetch authenticated user info
                     self.fetchUserProfile(token: token) { user in
                         completion(token, user)
                     }
@@ -55,7 +54,7 @@ class GoogleAuthService: NSObject {
     }
 
     private func fetchUserProfile(token: String, completion: @escaping (User?) -> Void) {
-        guard let url = URL(string: "http://172.20.10.2:3000/auth/profile") else {
+        guard let url = URL(string: "\(API.baseURL)/auth/profile") else {
             completion(nil)
             return
         }
