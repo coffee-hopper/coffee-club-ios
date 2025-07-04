@@ -1,12 +1,10 @@
 import SwiftUI
 
 struct FooterView: View {
+    @EnvironmentObject var coordinator: ViewCoordinator
     @Binding var isPresentingScanner: Bool
-    @Binding var navigateToPayment: Bool
     @Binding var createdOrderId: Int?
     @Binding var createdOrderAmount: Double?
-
-    @Binding var showCartView: Bool
 
     var body: some View {
         VStack {
@@ -21,7 +19,7 @@ struct FooterView: View {
 
                 QRScanner(
                     isPresentingScanner: $isPresentingScanner,
-                    navigateToPayment: $navigateToPayment,
+                    navigateToPayment: $coordinator.navigateToPayment,
                     createdOrderId: $createdOrderId,
                     createdOrderAmount: $createdOrderAmount
                 )
@@ -30,7 +28,7 @@ struct FooterView: View {
 
                 IconButton(systemName: "cart.fill") {
                     print("Cart tapped")
-                    showCartView = true
+                    coordinator.showCart = true
                 }
                 Spacer()
             }
@@ -45,4 +43,5 @@ struct FooterView: View {
     let auth = AuthViewModel()
     return ContentView(auth: auth)
         .environmentObject(auth)
+        .environmentObject(ViewCoordinator())
 }

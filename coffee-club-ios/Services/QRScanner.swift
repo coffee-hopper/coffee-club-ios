@@ -25,7 +25,7 @@ struct QRScanner: View {
                     print("📦 Scanned QR Content:\n\(code.string)")
 
                     guard let data = code.string.data(using: .utf8),
-                        let payload = try? JSONDecoder().decode(QRPayload.self, from: data)
+                          let payload = try? JSONDecoder().decode(QRPayload.self, from: data)
                     else {
                         print("❌ Failed to decode QR payload")
                         return
@@ -34,7 +34,7 @@ struct QRScanner: View {
                     let productURL = URL(string: "http://localhost:3000/products")!
                     URLSession.shared.dataTask(with: productURL) { data, _, _ in
                         guard let data = data,
-                            let products = try? JSONDecoder().decode([Product].self, from: data)
+                              let products = try? JSONDecoder().decode([Product].self, from: data)
                         else {
                             print("❌ Failed to fetch products")
                             return
@@ -77,10 +77,10 @@ struct QRScanner: View {
 
                         URLSession.shared.dataTask(with: orderRequest) { data, _, _ in
                             guard let data = data,
-                                let order = try? JSONDecoder().decode(
-                                    OrderResponse.self,
-                                    from: data
-                                )
+                                  let order = try? JSONDecoder().decode(
+                                      OrderResponse.self,
+                                      from: data
+                                  )
                             else {
                                 print("❌ Order creation failed")
                                 return

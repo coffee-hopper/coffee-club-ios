@@ -5,10 +5,9 @@ struct CartView: View {
 
     @Binding var returnToHome: Bool
     @Binding var navigateToPayment: Bool
-    @Binding var showCartView : Bool
-
-    @State private var createdOrderId: Int?
-    @State private var createdOrderAmount: Double?
+    @Binding var showCartView: Bool
+    @Binding var createdOrderId: Int?
+    @Binding var createdOrderAmount: Double?
 
     var totalAmount: Double {
         cart.items.reduce(0.0) { $0 + (Double($1.product.price) * Double($1.quantity)) }
@@ -95,33 +94,11 @@ struct CartView: View {
         }
         .navigationBarTitleDisplayMode(.inline)
         .navigationBarBackButtonHidden(false)
-
-        .navigationDestination(isPresented: $navigateToPayment) {
-            if let id = createdOrderId, let amount = createdOrderAmount {
-                PaymentView(
-                    orderId: id,
-                    totalAmount: amount,
-                    returnToHome: $returnToHome
-                ).environmentObject(cart)
-
-            } else {
-                EmptyView()
-            }
-        }
-    }
-
-    @ViewBuilder
-    private var paymentDestination: some View {
-        if let id = createdOrderId, let amount = createdOrderAmount {
-            PaymentView(orderId: id, totalAmount: amount, returnToHome: $returnToHome)
-        } else {
-            EmptyView()
-        }
     }
 
     private func createOrderFromCart() {
         guard let orderPayload = cart.createOrderPayload(),
-            let orderData = try? JSONEncoder().encode(orderPayload)
+              let orderData = try? JSONEncoder().encode(orderPayload)
         else {
             print("❌ Failed to prepare cart order")
             return
@@ -134,7 +111,7 @@ struct CartView: View {
 
         URLSession.shared.dataTask(with: request) { data, _, _ in
             guard let data = data,
-                let order = try? JSONDecoder().decode(OrderResponse.self, from: data)
+                  let order = try? JSONDecoder().decode(OrderResponse.self, from: data)
             else {
                 print("❌ Failed to create order from cart")
                 return
@@ -149,5 +126,3 @@ struct CartView: View {
         }.resume()
     }
 }
-
-
