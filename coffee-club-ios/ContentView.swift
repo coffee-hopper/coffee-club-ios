@@ -84,7 +84,7 @@ struct ContentView: View {
 
             .navigationDestination(isPresented: $showCartView) {
                 CartView(
-                    returnToHome: $returnToHome, navigateToPayment: $navigateToPayment
+                    returnToHome: $returnToHome, navigateToPayment: $navigateToPayment, showCartView: $showCartView
                 )
             }
             

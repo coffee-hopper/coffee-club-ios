@@ -67,7 +67,7 @@ struct PaymentView: View {
                             .trim(from: 0, to: redirectProgress)
                             .stroke(Color("GreenEnergic"), lineWidth: 8)
                             .rotationEffect(.degrees(-90))
-                            .animation(.linear(duration: 8), value: redirectProgress)
+                            .animation(.linear(duration: 1.5), value: redirectProgress)
 
                         Text("Returning...")
                             .font(.subheadline)
@@ -143,10 +143,10 @@ struct PaymentView: View {
 
                     if decoded.payment.status == "success" {
                         withAnimation {
-                            redirectProgress = 1.0
+                            redirectProgress = 2.0
                         }
 
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 8) {
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
                             cart.clearCart()
                             returnToHome = true
                         }

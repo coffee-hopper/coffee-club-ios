@@ -5,6 +5,7 @@ struct CartView: View {
 
     @Binding var returnToHome: Bool
     @Binding var navigateToPayment: Bool
+    @Binding var showCartView : Bool
 
     @State private var createdOrderId: Int?
     @State private var createdOrderAmount: Double?
@@ -143,12 +144,10 @@ struct CartView: View {
                 self.createdOrderId = order.id
                 self.createdOrderAmount = order.totalAmount
                 self.navigateToPayment = true
+                self.showCartView = false
             }
         }.resume()
     }
 }
 
-#Preview {
-    CartView(returnToHome: .constant(false), navigateToPayment: .constant(false))
-        .environmentObject(CartManager())
-}
+
