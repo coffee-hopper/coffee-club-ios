@@ -29,6 +29,9 @@ final class ViewCoordinator: ObservableObject {
         didSet { if returnToHome { resetAll() } }
     }
 
+    @Published var showProductDetail = false
+    @Published var selectedProduct: Product? = nil
+
     // MARK: - Utility
     private func resetExcept(_ key: String) {
         switch key {

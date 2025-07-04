@@ -4,31 +4,30 @@ struct ContentView: View {
     var auth: AuthViewModel
 
     @StateObject private var cart = CartManager()
+    @EnvironmentObject var coordinator: ViewCoordinator
 
-    @State private var showProfile = false
-    @State private var showNotification = false
-    @State private var showProductListView = false
     @State private var selectedCategory = "drink"
     @State private var searchText: String = ""
-    @State private var showCartView = false
-    @State private var returnToHome = false
 
     @State private var isPresentingScanner = false
-    @State private var navigateToPayment = false
+
     @State private var createdOrderId: Int?
     @State private var createdOrderAmount: Double?
 
     var body: some View {
         NavigationStack {
             ZStack(alignment: .top) {
-                MainHeaderView(showProfile: $showProfile, showNotification: $showNotification)
+                MainHeaderView(
+                    showProfile: $coordinator.showProfile,
+                    showNotification: $coordinator.showNotification
+                )
+
                 FooterView(
                     isPresentingScanner: $isPresentingScanner,
-                    navigateToPayment: $navigateToPayment,
                     createdOrderId: $createdOrderId,
-                    createdOrderAmount: $createdOrderAmount,
-                    showCartView: $showCartView
+                    createdOrderAmount: $createdOrderAmount
                 )
+                .environmentObject(coordinator)
 
                 VStack(spacing: 0) {
                     Spacer().frame(height: 50)
@@ -39,11 +38,13 @@ struct ContentView: View {
 
                             ProductView(
                                 title: selectedCategory,
-                                showAllBinding: $showProductListView,
+                                showAllBinding: $coordinator.showProductList,
                                 searchText: $searchText,
                                 category: $selectedCategory
-                            ).padding()
-                                .frame(maxWidth: .infinity)
+                            )
+                            .environmentObject(cart)
+                            .padding()
+                            .frame(maxWidth: .infinity)
 
                             Spacer().frame(height: 80)
                         }
@@ -51,53 +52,67 @@ struct ContentView: View {
                 }
             }
 
-            .navigationDestination(isPresented: $showProductListView) {
+            .navigationDestination(isPresented: $coordinator.showProductList) {
                 ProductListView(
-                    isActive: $showProductListView,
+                    isActive: $coordinator.showProductList,
                     category: selectedCategory
                 )
                 .environmentObject(auth)
             }
 
-            .navigationDestination(isPresented: $showProfile) {
-                ProfileView(isActive: $showProfile)
+            .navigationDestination(isPresented: $coordinator.showProfile) {
+                ProfileView(isActive: $coordinator.showProfile)
                     .environmentObject(auth)
             }
 
-            .navigationDestination(isPresented: $showNotification) {
-                NotificationView(isActive: $showNotification)
+            .navigationDestination(isPresented: $coordinator.showNotification) {
+                NotificationView(isActive: $coordinator.showNotification)
                     .environmentObject(auth)
             }
 
-            .navigationDestination(isPresented: $navigateToPayment) {
+            .navigationDestination(isPresented: $coordinator.navigateToPayment) {
                 if let id = createdOrderId, let amount = createdOrderAmount {
                     PaymentView(
                         orderId: id,
                         totalAmount: amount,
-                        returnToHome: $returnToHome
-                    ).environmentObject(cart)
-
+                        returnToHome: $coordinator.returnToHome
+                    )
+                    .environmentObject(cart)
                 } else {
                     EmptyView()
                 }
             }
 
-            .navigationDestination(isPresented: $showCartView) {
+            .navigationDestination(isPresented: $coordinator.showCart) {
                 CartView(
-                    returnToHome: $returnToHome, navigateToPayment: $navigateToPayment, showCartView: $showCartView
+                    returnToHome: $coordinator.returnToHome,
+                    navigateToPayment: $coordinator.navigateToPayment,
+                    showCartView: $coordinator.showCart,
+                    createdOrderId: $createdOrderId,
+                    createdOrderAmount: $createdOrderAmount
                 )
+                .environmentObject(cart)
             }
-            
-            .navigationDestination(isPresented: $returnToHome) {
-                ContentView(auth: auth)
+
+            .navigationDestination(isPresented: $coordinator.showProductDetail) {
+                if let product = coordinator.selectedProduct {
+                    ProductDetailView(product: product)
+                        .environmentObject(cart)
+                } else {
+                    EmptyView()
+                }
+            }
+
         }
+        .onChange(of: coordinator.returnToHome) {
+            coordinator.resetAll()
         }
     }
-
 }
 
 #Preview {
     let auth = AuthViewModel()
     return ContentView(auth: auth)
         .environmentObject(auth)
+        .environmentObject(ViewCoordinator())
 }

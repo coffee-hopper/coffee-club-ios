@@ -2,7 +2,9 @@ import SwiftUI
 
 struct ProductCard: View {
     let product: Product
+
     @EnvironmentObject var cart: CartManager
+    @EnvironmentObject var coordinator: ViewCoordinator
 
     var body: some View {
         ZStack(alignment: .center) {
@@ -16,6 +18,10 @@ struct ProductCard: View {
                     .scaledToFit()
                     .frame(height: 150)
                     .rotationEffect(.degrees(-8))
+                    .onTapGesture {
+                        coordinator.selectedProduct = product
+                        coordinator.showProductDetail = true
+                    }
 
                 Text(product.name)
                     .font(.system(size: 14))

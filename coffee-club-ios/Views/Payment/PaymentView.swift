@@ -25,7 +25,7 @@ struct PaymentView: View {
                 .foregroundColor(.primary)
 
             Picker("Payment Method", selection: $selectedMethod) {
-                ForEach(methods, id: \.self) { method in
+                ForEach(methods, id: \ .self) { method in
                     Text(method.capitalized)
                 }
             }
@@ -110,7 +110,7 @@ struct PaymentView: View {
         )
 
         guard let url = URL(string: "http://localhost:3000/payments"),
-            let data = try? JSONEncoder().encode(payload)
+              let data = try? JSONEncoder().encode(payload)
         else {
             print("❌ Failed to encode payment request")
             return
@@ -150,7 +150,6 @@ struct PaymentView: View {
                             cart.clearCart()
                             returnToHome = true
                         }
-
                     }
                 } catch {
                     print("❌ Payment decode error:", error)

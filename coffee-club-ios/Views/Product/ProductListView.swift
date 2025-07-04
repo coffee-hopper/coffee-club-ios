@@ -2,13 +2,15 @@ import SwiftUI
 
 struct ProductListView: View {
     @EnvironmentObject var auth: AuthViewModel
+    @EnvironmentObject var coordinator: ViewCoordinator
+
     @Binding var isActive: Bool
-    let category: String
 
     @State private var products: [Product] = []
-
     @State private var offsetY: CGFloat = 0
     @State private var currentIndex: CGFloat = 0
+
+    let category: String
 
     var body: some View {
         GeometryReader { geo in
@@ -100,8 +102,12 @@ struct ProductListView: View {
                             Text("\(product.price)₺")
                                 .font(.title)
 
-                            Text("ID: \(product.id)")
+                            Text("Go to product details")
                                 .foregroundColor(Color("TextPrimary"))
+                                .onTapGesture {
+                                    coordinator.selectedProduct = product
+                                    coordinator.showProductDetail = true
+                                }
                         }
                         .frame(width: width)
                     }
@@ -178,7 +184,6 @@ struct ProductCardView: View {
                 .scaleEffect(offset > 0 ? 1 + currentCardScale : 1, anchor: .top)
                 .offset(y: offset > 0 ? currentCardScale * 200 : 0)
                 .offset(y: currentCardScale * -130)
-
         }
         .frame(height: cardHeight)
     }
