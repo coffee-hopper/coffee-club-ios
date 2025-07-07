@@ -32,23 +32,23 @@ struct ContentView: View {
                 VStack(spacing: 0) {
                     Spacer().frame(height: 50)
 
-                    ScrollView(showsIndicators: false) {
-                        VStack {
-                            RewardView()
+                    //                    ScrollView(showsIndicators: false) {
+                    VStack {
+                        RewardView()
 
-                            ProductView(
-                                title: selectedCategory,
-                                showAllBinding: $coordinator.showProductList,
-                                searchText: $searchText,
-                                category: $selectedCategory
-                            )
-                            .environmentObject(cart)
-                            .padding()
-                            .frame(maxWidth: .infinity)
+                        ProductView(
+                            title: selectedCategory,
+                            showAllBinding: $coordinator.showProductList,
+                            searchText: $searchText,
+                            category: $selectedCategory
+                        )
+                        .environmentObject(cart)
+                        .padding()
+                        .frame(maxWidth: .infinity)
 
-                            Spacer().frame(height: 80)
-                        }
+                        Spacer().frame(height: 80)
                     }
+                    //                    }
                 }
             }
 

@@ -79,6 +79,7 @@ struct RewardView: View {
         .background(Color("AccentDark").opacity(0.85))
         .cornerRadius(16)
         .padding(.horizontal)
+        .padding(.top, 15)
 
         .onAppear {
             fetchLoyaltyData()

@@ -61,3 +61,4 @@ struct MainHeaderView: View {
     return ContentView(auth: auth)
         .environmentObject(auth)
 }
+

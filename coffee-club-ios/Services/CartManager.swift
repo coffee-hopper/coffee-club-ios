@@ -2,8 +2,6 @@ import Foundation
 
 final class CartManager: ObservableObject {
     @Published var items: [CartItem] = []
-    
-
     private let key = "cart_items"
 
     init() {
