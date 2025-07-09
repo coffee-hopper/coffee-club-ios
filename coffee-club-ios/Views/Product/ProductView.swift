@@ -11,6 +11,9 @@ struct ProductView: View {
 
     @State private var isSearching = false
     @FocusState private var isTextFieldFocused: Bool
+    
+    let heightUnit : CGFloat
+
 
     var filteredProducts: [Product] {
         allProducts
@@ -36,11 +39,10 @@ struct ProductView: View {
                     .ignoresSafeArea()
             }
 
-            VStack(alignment: .leading) {
+            VStack {
                 // MARK: Categories View
-                VStack(spacing: 5) {
-                    HStack(spacing: 20) {
-
+                VStack {
+                    HStack {
                         VStack {
                             IconButton(systemName: "cup.and.heat.waves.fill") {
                                 category = "drink"
@@ -80,7 +82,7 @@ struct ProductView: View {
                     }
                     .padding(.horizontal, 12)
 
-                    HStack(spacing: 10) {
+                    HStack {
                         ZStack {
                             //MARK: Invisible tap area to trigger search
                             Color.clear
@@ -105,7 +107,7 @@ struct ProductView: View {
                                 }
 
                             //MARK: SearchBar
-                            HStack(spacing: 10) {
+                            HStack {
                                 if isSearching {
                                     TextField("Search...", text: $searchText)
                                         .padding(.horizontal, 10)
@@ -139,11 +141,11 @@ struct ProductView: View {
                                     }
                                 )
                             }
-                            .frame(height: 75)
+                            .frame(height: 70)
                             .padding(.horizontal, 12)
                         }
                     }
-                    .frame(height: 75)
+                    .frame(height: 70)
 
                 }
 
@@ -161,15 +163,15 @@ struct ProductView: View {
                 }
 
                 ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 32) {
+                    HStack {
                         ForEach(filteredProducts) { product in
-                            ProductCard(product: product)
+                            ProductCard(product: product, heightUnit: heightUnit * 0.55)
                         }
+                        .padding(.leading)
                     }
-                    .padding(.horizontal)
                 }
             }
-            .padding(.vertical)
+            .padding(.horizontal)
             .onAppear {
                 fetchProducts()
             }

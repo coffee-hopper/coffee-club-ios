@@ -17,9 +17,10 @@ struct ProductRef: Codable {
 extension Product {
     var imageName: String {
         switch id {
-        case 1: return "filter_coffee"
-        case 2: return "iced_americano"
-        case 3: return "iced_latte"
+        case 1: return "coffee_icedLatte"
+        case 2: return "coffee_icedMocha"
+        case 3: return "coffee_latte"
+        case 4: return "coffee_turkish"
         default: return "default_coffee"
         }
     }

@@ -6,52 +6,43 @@ struct MainHeaderView: View {
     @Binding var showNotification: Bool
 
     var body: some View {
-        ZStack {
-            VStack(spacing: 12) {
-                Spacer()
-                HStack {
-                    Button(action: {
-                        showProfile = true
-                    }) {
-                        if let pictureURL = auth.user?.picture, let url = URL(string: pictureURL) {
-                            AsyncImage(url: url) { image in
-                                image.resizable()
-                            } placeholder: {
-                                ProgressView()
-                            }
-                            .frame(width: 40, height: 40)
-                            .clipShape(Circle())
-                        } else {
-                            IconButton(
-                                systemName: "person.crop.circle.fill",
-                                action: {
-                                    print("Profile_tapped")
-                                },
-                                isFilled: false
-                            )
-                        }
+
+        HStack {
+            Button(action: {
+                showProfile = true
+            }) {
+                if let pictureURL = auth.user?.picture, let url = URL(string: pictureURL) {
+                    AsyncImage(url: url) { image in
+                        image.resizable()
+                    } placeholder: {
+                        ProgressView()
                     }
-
-                    Spacer()
-
+                    .frame(width: 40, height: 40)
+                    .clipShape(Circle())
+                } else {
                     IconButton(
-                        systemName: "bell.fill",
+                        systemName: "person.crop.circle.fill",
                         action: {
-                            showNotification = true
-                            print("Notifications_tapped")
+                            print("Profile_tapped")
                         },
-                        isFilled: false,
-                        iconSize: 28
+                        isFilled: false
                     )
                 }
-
-                .padding(.horizontal, 20)
-
-                Spacer()
             }
+
+            Spacer()
+
+            IconButton(
+                systemName: "bell.fill",
+                action: {
+                    showNotification = true
+                    print("Notifications_tapped")
+                },
+                isFilled: false,
+                iconSize: 28
+            )
         }
-        .frame(height: 150)
-        .ignoresSafeArea(edges: .top)
+        .padding(.horizontal, 20)
     }
 
 }
@@ -61,4 +52,3 @@ struct MainHeaderView: View {
     return ContentView(auth: auth)
         .environmentObject(auth)
 }
-

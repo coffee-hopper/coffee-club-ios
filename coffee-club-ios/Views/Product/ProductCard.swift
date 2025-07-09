@@ -2,6 +2,7 @@ import SwiftUI
 
 struct ProductCard: View {
     let product: Product
+    let heightUnit: CGFloat
 
     @EnvironmentObject var cart: CartManager
     @EnvironmentObject var coordinator: ViewCoordinator
@@ -12,17 +13,15 @@ struct ProductCard: View {
 
     var body: some View {
         ZStack(alignment: .center) {
-            // 🟦 Main Card Background (changes based on stock)
-            TaperedCardShape(cornerRadius: 50)
+            TaperedCardShape(cornerRadius: heightUnit * 0.2)
                 .fill(isOutOfStock ? Color.gray.opacity(0.2) : Color.accentColor.opacity(0.1))
-                .frame(width: 230, height: 200)
-
+                .frame(width: heightUnit * 0.70, height: heightUnit * 0.65)
+            
             VStack(spacing: 8) {
-                // 🖼 Image (grayed overlay if out of stock)
                 Image(product.imageName)
                     .resizable()
                     .scaledToFit()
-                    .frame(height: 150)
+                    .frame(height: heightUnit * 0.38)
                     .rotationEffect(.degrees(-8))
                     .opacity(isOutOfStock ? 0.4 : 1.0)
                     .onTapGesture {
@@ -38,7 +37,6 @@ struct ProductCard: View {
                     .font(.subheadline.bold())
                     .foregroundColor(.accent)
 
-                // ➕ Add to Cart Button
                 IconButton(
                     systemName: "plus",
                     action: {
@@ -58,8 +56,8 @@ struct ProductCard: View {
                 .foregroundColor(.white)
                 .disabled(isOutOfStock)
             }
-            .offset(y: -5)
+            .offset(y: -heightUnit * 0.05)
         }
-        .frame(width: 220, height: 250)
+        .frame(height: heightUnit)
     }
 }

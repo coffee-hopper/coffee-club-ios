@@ -16,40 +16,38 @@ struct ContentView: View {
 
     var body: some View {
         NavigationStack {
-            ZStack(alignment: .top) {
-                MainHeaderView(
-                    showProfile: $coordinator.showProfile,
-                    showNotification: $coordinator.showNotification
-                )
+            GeometryReader { geo in
+                VStack(alignment: .leading) {
+                    MainHeaderView(
+                        showProfile: $coordinator.showProfile,
+                        showNotification: $coordinator.showNotification
+                    )
+                    .frame(height: geo.size.height * 0.075)
 
-                FooterView(
-                    isPresentingScanner: $isPresentingScanner,
-                    createdOrderId: $createdOrderId,
-                    createdOrderAmount: $createdOrderAmount
-                )
-                .environmentObject(coordinator)
+                    RewardView()
+                        .frame(height: geo.size.height * 0.25)
 
-                VStack(spacing: 0) {
-                    Spacer().frame(height: 50)
+                    ProductView(
+                        title: selectedCategory,
+                        showAllBinding: $coordinator.showProductList,
+                        searchText: $searchText,
+                        category: $selectedCategory,
+                        heightUnit: geo.size.height * 0.55
+                    )
+                    .environmentObject(cart)
+                    .frame(height: geo.size.height * 0.52)
 
-                    //                    ScrollView(showsIndicators: false) {
-                    VStack {
-                        RewardView()
-
-                        ProductView(
-                            title: selectedCategory,
-                            showAllBinding: $coordinator.showProductList,
-                            searchText: $searchText,
-                            category: $selectedCategory
-                        )
-                        .environmentObject(cart)
-                        .padding()
-                        .frame(maxWidth: .infinity)
-
-                        Spacer().frame(height: 80)
-                    }
-                    //                    }
+                    Spacer()
+                    
+                    FooterView(
+                        isPresentingScanner: $isPresentingScanner,
+                        createdOrderId: $createdOrderId,
+                        createdOrderAmount: $createdOrderAmount
+                    )
+                    .environmentObject(coordinator)
+                    .frame(height: geo.size.height * 0.1)
                 }
+                .frame(width: geo.size.width, height: geo.size.height)
             }
 
             .navigationDestination(isPresented: $coordinator.showProductList) {

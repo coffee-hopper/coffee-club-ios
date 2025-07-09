@@ -15,74 +15,77 @@ struct RewardView: View {
 
     var body: some View {
 
-        HStack(spacing: 20) {
-            Spacer()
+        GeometryReader { geo in
 
-            VStack(alignment: .leading, spacing: 8) {
-                Text("Stars")
-                    .foregroundColor(Color("GreenEnergic").opacity(0.8))
+            HStack(spacing: 20) {
+                Spacer()
 
-                HStack(alignment: .center, spacing: 4) {
-                    Image(systemName: "star.fill")
-                        .foregroundColor(.yellow)
-                    Text("\(loyaltyStats.stars )")
-                        .font(.system(size: 32, weight: .bold))
-                        .foregroundColor(.white)
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Earned Stars")
+                        .foregroundColor(Color("GreenEnergic").opacity(0.8))
+
+                    HStack(alignment: .center, spacing: 4) {
+                        Image(systemName: "star.fill")
+                            .foregroundColor(.yellow)
+                        Text("\(loyaltyStats.stars )")
+                            .font(.system(size: 32, weight: .bold))
+                            .foregroundColor(.white)
+                    }
+
+                    Text("\(loyaltyStats.rewards) free Coffee")
+                        .foregroundColor(Color("GreenEnergic").opacity(0.7))
+                        .font(.footnote)
                 }
+                .frame(maxWidth: .infinity, alignment: .leading)
 
-                Text("\(loyaltyStats.rewards) free Coffee")
-                    .foregroundColor(Color("GreenEnergic").opacity(0.7))
-                    .font(.footnote)
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
+                ZStack {
+                    Circle()
+                        .stroke(lineWidth: 8)
+                        .opacity(0.2)
+                        .foregroundColor(Color("TextPrimary"))
+                        .frame(height: geo.size.height * 0.5)
 
-            ZStack {
-                Circle()
-                    .stroke(lineWidth: 8)
-                    .opacity(0.1)
-                    .foregroundColor(Color("TextPrimary"))
-
-                Circle()
-                    .trim(
-                        from: 0,
-                        to: CGFloat(
-                            min(
-                                CGFloat(currentDrinkStack)
-                                    / CGFloat(loyaltyStats.requiredStars),
-                                1.0
+                    Circle()
+                        .trim(
+                            from: 0,
+                            to: CGFloat(
+                                min(
+                                    CGFloat(currentDrinkStack)
+                                        / CGFloat(loyaltyStats.requiredStars),
+                                    1.0
+                                )
                             )
                         )
-                    )
+                        .stroke(Color("GreenEnergic"), lineWidth: 8)
+                        .rotationEffect(Angle(degrees: -90))
+                        .animation(.easeOut(duration: 0.8), value: loyaltyStats.stars)
+                        .frame(height: geo.size.height * 0.5)
 
-                    .stroke(Color("GreenEnergic"), lineWidth: 8)
-                    .rotationEffect(Angle(degrees: -90))
-                    .animation(.easeOut(duration: 0.8), value: loyaltyStats.stars)
+                    VStack {
+                        Image("default_coffee")
+                            .resizable()
+                            .scaledToFit()
+                            .padding(.top, -geo.size.height * 0.1)
 
-                VStack {
-                    Image("default_coffee")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 80, height: 80)
-                        .padding(.top, -10)
+                        Text("\(currentDrinkStack)/\(loyaltyStats.requiredStars)")
+                            .font(.footnote)
+                            .foregroundColor(Color("TextSecondary"))
+                    }
+                    .frame(width: geo.size.height * 0.4, height: geo.size.height * 0.4)
 
-                    Text("\(currentDrinkStack)/\(loyaltyStats.requiredStars)")
-                        .font(.footnote)
-                        .foregroundColor(Color("TextSecondary"))
                 }
+
+                Spacer()
+
             }
-            .frame(width: 110, height: 110)
-
-            Spacer()
-
-        }
-        .frame(height: 160)
-        .background(Color("AccentDark").opacity(0.85))
-        .cornerRadius(16)
-        .padding(.horizontal)
-        .padding(.top, 15)
-
-        .onAppear {
-            fetchLoyaltyData()
+            
+            .padding(.vertical)
+            .background(Color("AccentDark").opacity(0.85))
+            .cornerRadius(16)
+            .padding(.horizontal)
+            .onAppear {
+                fetchLoyaltyData()
+            }
         }
     }
 

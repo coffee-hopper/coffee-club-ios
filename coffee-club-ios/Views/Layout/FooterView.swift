@@ -7,32 +7,29 @@ struct FooterView: View {
     @Binding var createdOrderAmount: Double?
 
     var body: some View {
-        VStack {
+        HStack {
             Spacer()
-            HStack {
-                Spacer()
-                IconButton(systemName: "heart.fill") {
-                    print("Favorites tapped")
-                }
 
-                Spacer()
-
-                QRScanner(
-                    isPresentingScanner: $isPresentingScanner,
-                    navigateToPayment: $coordinator.navigateToPayment,
-                    createdOrderId: $createdOrderId,
-                    createdOrderAmount: $createdOrderAmount
-                )
-
-                Spacer()
-
-                IconButton(systemName: "cart.fill") {
-                    print("Cart tapped")
-                    coordinator.showCart = true
-                }
-                Spacer()
+            IconButton(systemName: "heart.fill") {
+                print("Favorites tapped")
             }
-            .padding(.vertical, 22)
+
+            Spacer()
+
+            QRScanner(
+                isPresentingScanner: $isPresentingScanner,
+                navigateToPayment: $coordinator.navigateToPayment,
+                createdOrderId: $createdOrderId,
+                createdOrderAmount: $createdOrderAmount
+            )
+
+            Spacer()
+
+            IconButton(systemName: "cart.fill") {
+                coordinator.showCart = true
+            }
+
+            Spacer()
         }
         .zIndex(2)
         .ignoresSafeArea(edges: .bottom)

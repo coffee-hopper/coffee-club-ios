@@ -11,26 +11,6 @@ struct ProfileView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            // MARK: Header
-            HStack {
-                IconButton(
-                    systemName: "chevron.left",
-                    action: {
-                        isActive = false
-                    },
-                    isFilled: false
-                )
-
-                Text("Hi, \(auth.user?.name ?? "guest")!")
-                    .font(.title2.bold())
-                    .padding(.leading, 4)
-                    .foregroundColor(Color("TextPrimary"))
-
-                Spacer()
-            }
-            .padding(.horizontal)
-
-            // MARK: Profile Info
             VStack(spacing: 8) {
                 if let urlString = auth.user?.picture,
                     let url = URL(string: urlString)
@@ -56,14 +36,11 @@ struct ProfileView: View {
             }
             .frame(maxWidth: .infinity)
 
-            // MARK: Settings List
             List {
                 Section {
                     Label("Personal Info", systemImage: "person")
                     Label("Preferences", systemImage: "slider.horizontal.3")
-                }
 
-                Section {
                     HStack {
                         Label("Language", systemImage: "globe")
                         Spacer()
@@ -125,7 +102,7 @@ struct ProfileView: View {
                 Button("Cancel", role: .cancel) {}
             }
         }
-        .navigationBarHidden(true)
+        .navigationTitle("Hi, \(auth.user?.name ?? "Guest")!")
     }
 }
 
