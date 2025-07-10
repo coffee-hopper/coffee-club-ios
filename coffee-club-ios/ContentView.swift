@@ -17,7 +17,7 @@ struct ContentView: View {
     var body: some View {
         NavigationStack {
             GeometryReader { geo in
-                VStack(alignment: .leading) {
+                VStack(alignment: .leading, spacing: 0) {
                     MainHeaderView(
                         showProfile: $coordinator.showProfile,
                         showNotification: $coordinator.showNotification
@@ -32,20 +32,18 @@ struct ContentView: View {
                         showAllBinding: $coordinator.showProductList,
                         searchText: $searchText,
                         category: $selectedCategory,
-                        heightUnit: geo.size.height * 0.55
+                        heightUnit: geo.size.height * 0.60
                     )
                     .environmentObject(cart)
-                    .frame(height: geo.size.height * 0.52)
+                    .frame(height: geo.size.height * 0.60)
 
-                    Spacer()
-                    
                     FooterView(
                         isPresentingScanner: $isPresentingScanner,
                         createdOrderId: $createdOrderId,
                         createdOrderAmount: $createdOrderAmount
                     )
                     .environmentObject(coordinator)
-                    .frame(height: geo.size.height * 0.1)
+                    .frame(height: geo.size.height * 0.075)
                 }
                 .frame(width: geo.size.width, height: geo.size.height)
             }

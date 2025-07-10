@@ -12,22 +12,10 @@ struct ProductCard: View {
     }
 
     var body: some View {
-        ZStack(alignment: .center) {
-            TaperedCardShape(cornerRadius: heightUnit * 0.2)
-                .fill(isOutOfStock ? Color.gray.opacity(0.2) : Color.accentColor.opacity(0.1))
-                .frame(width: heightUnit * 0.70, height: heightUnit * 0.65)
-            
-            VStack(spacing: 8) {
-                Image(product.imageName)
-                    .resizable()
-                    .scaledToFit()
-                    .frame(height: heightUnit * 0.38)
-                    .rotationEffect(.degrees(-8))
-                    .opacity(isOutOfStock ? 0.4 : 1.0)
-                    .onTapGesture {
-                        coordinator.selectedProduct = product
-                        coordinator.showProductDetail = true
-                    }
+        ZStack {
+
+            VStack(spacing: 4) {
+                Spacer()
 
                 Text(product.name)
                     .font(.system(size: 14))
@@ -36,6 +24,24 @@ struct ProductCard: View {
                 Text(String(format: "%.2f ₺", product.price))
                     .font(.subheadline.bold())
                     .foregroundColor(.accent)
+            }
+            .frame(width: heightUnit * 0.75, height: heightUnit * 0.75)
+            .taperedCardBackground(heightUnit: heightUnit * 0.75, isOutOfStock: isOutOfStock)
+
+            VStack {
+                Image(product.imageName)
+                    .resizable()
+                    .clipped(antialiased: false)
+                    .scaledToFit()
+                    .frame(height: heightUnit * 0.65)
+                    .rotationEffect(.degrees(-9))
+                    .opacity(isOutOfStock ? 0.4 : 1.0)
+                    .onTapGesture {
+                        coordinator.selectedProduct = product
+                        coordinator.showProductDetail = true
+                    }
+
+                Spacer()
 
                 IconButton(
                     systemName: "plus",
@@ -56,8 +62,10 @@ struct ProductCard: View {
                 .foregroundColor(.white)
                 .disabled(isOutOfStock)
             }
-            .offset(y: -heightUnit * 0.05)
+            .frame(width: heightUnit * 0.95, height: heightUnit * 0.95)
+            .zIndex(2)
+
         }
-        .frame(height: heightUnit)
+        .frame(width: heightUnit * 0.80, height: heightUnit)
     }
 }

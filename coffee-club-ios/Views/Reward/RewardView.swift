@@ -14,11 +14,8 @@ struct RewardView: View {
     }
 
     var body: some View {
-
         GeometryReader { geo in
-
-            HStack(spacing: 20) {
-                Spacer()
+            HStack(alignment: .center, spacing: 20) {
 
                 VStack(alignment: .leading, spacing: 8) {
                     Text("Earned Stars")
@@ -36,14 +33,21 @@ struct RewardView: View {
                         .foregroundColor(Color("GreenEnergic").opacity(0.7))
                         .font(.footnote)
                 }
-                .frame(maxWidth: .infinity, alignment: .leading)
+                .frame(
+                    width: geo.size.width * 0.3,
+                    height: geo.size.height * 0.75,
+                    alignment: .leading
+                )
+                .padding(.leading)
+
+                Spacer()
 
                 ZStack {
                     Circle()
                         .stroke(lineWidth: 8)
                         .opacity(0.2)
                         .foregroundColor(Color("TextPrimary"))
-                        .frame(height: geo.size.height * 0.5)
+                        .frame(height: geo.size.height * 0.75)
 
                     Circle()
                         .trim(
@@ -59,27 +63,25 @@ struct RewardView: View {
                         .stroke(Color("GreenEnergic"), lineWidth: 8)
                         .rotationEffect(Angle(degrees: -90))
                         .animation(.easeOut(duration: 0.8), value: loyaltyStats.stars)
-                        .frame(height: geo.size.height * 0.5)
+                        .frame(height: geo.size.height * 0.75)
 
-                    VStack {
-                        Image("default_coffee")
-                            .resizable()
-                            .scaledToFit()
-                            .padding(.top, -geo.size.height * 0.1)
+                    VStack(alignment: .center, spacing: geo.size.height * 0.15) {
+                        ZStack {
+                            GIFView(name: "free_coffee")
+                                .frame(width: geo.size.height * 2.5, height: geo.size.height * 2.5)
+                                .scaleEffect(0.25)
+                                .clipped(antialiased: false)
+                        }
+                        .frame(width: geo.size.height * 0.4, height: geo.size.height * 0.4)
 
                         Text("\(currentDrinkStack)/\(loyaltyStats.requiredStars)")
                             .font(.footnote)
                             .foregroundColor(Color("TextSecondary"))
                     }
-                    .frame(width: geo.size.height * 0.4, height: geo.size.height * 0.4)
-
                 }
-
-                Spacer()
-
+                .padding(.trailing)
             }
-            
-            .padding(.vertical)
+            .frame(height: geo.size.height * 0.9)
             .background(Color("AccentDark").opacity(0.85))
             .cornerRadius(16)
             .padding(.horizontal)
