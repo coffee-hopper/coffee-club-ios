@@ -6,7 +6,7 @@ struct ContentView: View {
     @StateObject private var cart = CartManager()
     @EnvironmentObject var coordinator: ViewCoordinator
 
-    @State private var selectedCategory = "drink"
+    @State private var selectedCategory = "coffee"
     @State private var searchText: String = ""
 
     @State private var isPresentingScanner = false

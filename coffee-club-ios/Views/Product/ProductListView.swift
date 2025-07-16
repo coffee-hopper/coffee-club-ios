@@ -173,7 +173,7 @@ struct ProductCardView: View {
             let reducedScale = 1 + scale
             let currentCardScale = offset / cardSize
 
-            Image(product.imageName)
+            Image(product.processedImageName)
                 .resizable()
                 .aspectRatio(contentMode: .fit)
                 .frame(width: _size.width, height: _size.height)

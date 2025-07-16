@@ -1,8 +1,10 @@
 import Foundation
+import UIKit
 
 struct Product: Codable, Identifiable {
     let id: Int
     let name: String
+    let imageName: String
     let category: String
     let description: String?
     let price: Int
@@ -15,13 +17,19 @@ struct ProductRef: Codable {
 }
 
 extension Product {
-    var imageName: String {
-        switch id {
-        case 1: return "coffee_icedLatte"
-        case 2: return "coffee_icedMocha"
-        case 3: return "coffee_latte"
-        case 4: return "coffee_turkish"
-        default: return "default_coffee"
+    var processedImageName: String {
+        let assetName = imageName.replacingOccurrences(of: ".png", with: "")
+
+        if UIImage(named: assetName) != nil {
+            return assetName
+        }
+
+        // Fallback by category
+        switch category.lowercased() {
+        case "coffee": return "default_coffee"
+        case "tea": return "default_tea"
+        case "food": return "default_food"
+        default: return "default_product"
         }
     }
 }

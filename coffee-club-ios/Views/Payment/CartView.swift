@@ -30,7 +30,7 @@ struct CartView: View {
                     VStack(spacing: 14) {
                         ForEach(cart.items) { item in
                             HStack(spacing: 16) {
-                                Image(item.product.imageName)
+                                Image(item.product.processedImageName)
                                     .resizable()
                                     .frame(width: 60, height: 60)
                                     .cornerRadius(8)
@@ -45,6 +45,16 @@ struct CartView: View {
                                 }
 
                                 Spacer()
+
+                                CartStepperButton(
+                                    product: item.product,
+                                    quantity: item.quantity,
+                                    height: 25,
+                                    isOutOfStock: item.product.stockQuantity == 0,
+                                    onZeroQuantity: {
+                                        cart.removeFromCart(productId: item.product.id)
+                                    }
+                                )
 
                                 Button(action: {
                                     cart.removeFromCart(productId: item.product.id)

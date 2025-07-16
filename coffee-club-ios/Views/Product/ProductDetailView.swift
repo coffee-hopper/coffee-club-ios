@@ -7,7 +7,7 @@ struct ProductDetailView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
-                Image(product.imageName)
+                Image(product.processedImageName)
                     .resizable()
                     .scaledToFit()
                     .frame(maxWidth: .infinity)
@@ -65,18 +65,4 @@ struct ProductDetailView: View {
         .navigationTitle("Product Detail")
         .navigationBarTitleDisplayMode(.inline)
     }
-}
-
-#Preview {
-    let sample = Product(
-        id: 1,
-        name: "Americano",
-        category: "drink",
-        description: "A strong and bold espresso-based drink.",
-        price: 35,
-        stockQuantity: 10,
-        loyaltyMultiplier: 1
-    )
-    return ProductDetailView(product: sample)
-        .environmentObject(CartManager())
 }

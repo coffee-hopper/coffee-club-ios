@@ -12,6 +12,8 @@ struct ProductView: View {
     @State private var isSearching = false
     @FocusState private var isTextFieldFocused: Bool
 
+    @State private var activeProductId: Int? = nil
+
     let heightUnit: CGFloat
 
     var filteredProducts: [Product] {
@@ -44,11 +46,11 @@ struct ProductView: View {
                 HStack {
                     VStack {
                         IconButton(systemName: "cup.and.heat.waves.fill") {
-                            category = "drink"
+                            category = "coffee"
                         }
-                        Text("Drink")
+                        Text("Coffee")
                             .foregroundColor(
-                                category == "drink"
+                                category == "coffee"
                                     ? Color("TextPrimary") : Color("TextPrimary").opacity(0.45)
                             )
                     }
@@ -166,7 +168,11 @@ struct ProductView: View {
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack {
                         ForEach(filteredProducts) { product in
-                            ProductCard(product: product, heightUnit: heightUnit * 0.55)
+                            ProductCard(
+                                product: product,
+                                heightUnit: heightUnit * 0.55,
+                                activeProductId: $activeProductId
+                            )
                         }
                     }
 

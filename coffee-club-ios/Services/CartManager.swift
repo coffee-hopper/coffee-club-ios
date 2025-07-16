@@ -17,6 +17,17 @@ final class CartManager: ObservableObject {
         saveCart()
     }
 
+    func decreaseQuantity(for productId: Int) {
+        if let index = items.firstIndex(where: { $0.product.id == productId }) {
+            if items[index].quantity > 1 {
+                items[index].quantity -= 1
+            } else {
+                items.remove(at: index)
+            }
+            saveCart()
+        }
+    }
+
     func removeFromCart(productId: Int) {
         items.removeAll { $0.product.id == productId }
         saveCart()
@@ -52,9 +63,9 @@ final class CartManager: ObservableObject {
         }
         let total = orderItems.reduce(0.0) { $0 + ($1.price * Double($1.quantity)) }
         print(
-            "1: \(OrderRequest(user: 1, items: orderItems, totalAmount: total, status: "pending"))"
+            "1: \(OrderRequest(user: 1, items: orderItems, totalAmount: total, status: "success"))"
         )
 
-        return OrderRequest(user: 1, items: orderItems, totalAmount: total, status: "pending")
+        return OrderRequest(user: 1, items: orderItems, totalAmount: total, status: "success")
     }
 }

@@ -58,7 +58,7 @@ struct QRScanner: View {
                             user: payload.userId,
                             items: orderItems,
                             totalAmount: totalAmount,
-                            status: "pending"
+                            status: "success"
                         )
 
                         guard let orderData = try? JSONEncoder().encode(orderPayload) else {

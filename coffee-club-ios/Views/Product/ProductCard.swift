@@ -3,12 +3,19 @@ import SwiftUI
 struct ProductCard: View {
     let product: Product
     let heightUnit: CGFloat
+    @Binding var activeProductId: Int?
 
     @EnvironmentObject var cart: CartManager
     @EnvironmentObject var coordinator: ViewCoordinator
 
+    @State private var tiltAngle: Double = -9
+
     var isOutOfStock: Bool {
         product.stockQuantity == 0
+    }
+
+    var isStepperVisible: Bool {
+        activeProductId == product.id
     }
 
     var body: some View {
@@ -21,7 +28,7 @@ struct ProductCard: View {
                     .font(.system(size: 14))
                     .lineLimit(1)
 
-                Text(String(format: "%.2f ₺", product.price))
+                Text(String(format: "%.2f ₺", Double(product.price)))
                     .font(.subheadline.bold())
                     .foregroundColor(.accent)
             }
@@ -29,38 +36,41 @@ struct ProductCard: View {
             .taperedCardBackground(heightUnit: heightUnit * 0.75, isOutOfStock: isOutOfStock)
 
             VStack {
-                Image(product.imageName)
+                Image(product.processedImageName)
                     .resizable()
                     .clipped(antialiased: false)
                     .scaledToFit()
                     .frame(height: heightUnit * 0.65)
-                    .rotationEffect(.degrees(-9))
+                    .rotationEffect(.degrees(tiltAngle))
                     .opacity(isOutOfStock ? 0.4 : 1.0)
                     .onTapGesture {
                         coordinator.selectedProduct = product
                         coordinator.showProductDetail = true
                     }
+                
 
                 Spacer()
 
-                IconButton(
-                    systemName: "plus",
-                    action: {
-                        if !isOutOfStock {
-                            cart.addToCart(product)
-                            print("cart tapped product card")
+                CartStepperButton(
+                    product: product,
+                    quantity: nil,
+                    height: 25,
+                    isOutOfStock: isOutOfStock,
+                    onTap: {
+                        withAnimation(.spring()) {
+                            tiltAngle = 9
+                            activeProductId = product.id
                         }
-                    },
-                    isFilled: false,
-                    iconSize: 14
+
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.12) {
+                            withAnimation(.spring()) {
+                                tiltAngle = -9
+                            }
+                        }
+                    }
+
                 )
-                .background(
-                    TaperedCardShape(cornerRadius: 6)
-                        .fill(isOutOfStock ? Color.gray : Color.textPrimary.opacity(0.9))
-                        .frame(width: 34, height: 25)
-                )
-                .foregroundColor(.white)
-                .disabled(isOutOfStock)
+
             }
             .frame(width: heightUnit * 0.95, height: heightUnit * 0.95)
             .zIndex(2)
