@@ -14,7 +14,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		E0D56C3D2DD34F4100A9603A /* coffee-club-ios.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "coffee-club-ios.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		E0D56C3D2DD34F4100A9603A /* coffee-club-ios.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; name = "coffee-club-ios.app"; path = "/Users/bp/Desktop/Workspace/coffee-hopper/coffee-club-ios/build/Debug-iphoneos/coffee-club-ios.app"; sourceTree = "<absolute>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -57,7 +57,6 @@
 			isa = PBXGroup;
 			children = (
 				E0D56BF12DCCB3A900A9603A /* coffee-club-ios */,
-				E0D56C3D2DD34F4100A9603A /* coffee-club-ios.app */,
 			);
 			sourceTree = "<group>";
 		};
