@@ -31,6 +31,9 @@ struct ProductCard: View {
                 Text(String(format: "%.2f ₺", Double(product.price)))
                     .font(.subheadline.bold())
                     .foregroundColor(.accent)
+                
+                Spacer()
+                    .frame(height: 2)
             }
             .frame(width: heightUnit * 0.75, height: heightUnit * 0.75)
             .taperedCardBackground(heightUnit: heightUnit * 0.75, isOutOfStock: isOutOfStock)
