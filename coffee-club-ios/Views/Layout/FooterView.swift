@@ -4,7 +4,7 @@ struct FooterView: View {
     @EnvironmentObject var coordinator: ViewCoordinator
     @Binding var isPresentingScanner: Bool
     @Binding var createdOrderId: Int?
-    @Binding var createdOrderAmount: Double?
+    @Binding var createdOrderAmount: Decimal?
 
     var body: some View {
         HStack {

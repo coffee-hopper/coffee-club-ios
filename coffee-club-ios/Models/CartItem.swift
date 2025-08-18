@@ -1,7 +1,7 @@
 import Foundation
 
 struct CartItem: Codable, Identifiable {
-    let id = UUID()
+    var id: Int { product.id }
     let product: Product
     var quantity: Int
 }

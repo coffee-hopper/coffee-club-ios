@@ -1,3 +1,5 @@
+// TODO: replace with real user id from AuthVM
+
 import Foundation
 
 final class CartManager: ObservableObject {
@@ -54,18 +56,26 @@ final class CartManager: ObservableObject {
 
     func createOrderPayload() -> OrderRequest? {
         guard !items.isEmpty else { return nil }
+
         let orderItems = items.map {
             OrderItem(
                 product: ProductRef(id: $0.product.id),
                 quantity: $0.quantity,
-                price: Double($0.product.price)
+                price: Decimal($0.product.price)
             )
         }
-        let total = orderItems.reduce(0.0) { $0 + ($1.price * Double($1.quantity)) }
-        print(
-            "1: \(OrderRequest(user: 1, items: orderItems, totalAmount: total, status: "success"))"
+
+        let total: Decimal = orderItems.reduce(.zero) { partial, item in
+            partial + (item.price * Decimal(item.quantity))
+        }
+
+        let payload = OrderRequest(
+            user: 1,  // TODO: replace with real user id from AuthVM
+            items: orderItems,
+            totalAmount: total,
+            status: "success"
         )
 
-        return OrderRequest(user: 1, items: orderItems, totalAmount: total, status: "success")
+        return payload
     }
 }

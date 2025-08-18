@@ -31,7 +31,7 @@ struct ProductDetailView: View {
                             .foregroundColor(product.stockQuantity > 0 ? .green : .red)
                     }
 
-                    Text(String(format: "%.2f ₺", Double(product.price)))
+                    Text(PriceFormatting.string(from: Decimal(product.price)))
                         .font(.title2.bold())
                         .foregroundColor(.accentColor)
 

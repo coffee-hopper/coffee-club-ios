@@ -28,7 +28,7 @@ struct ProductCard: View {
                     .font(.system(size: 14))
                     .lineLimit(1)
 
-                Text(String(format: "%.2f ₺", Double(product.price)))
+                Text(PriceFormatting.string(from: Decimal(product.price)))
                     .font(.subheadline.bold())
                     .foregroundColor(.accent)
                 

@@ -1,3 +1,6 @@
+// TODO(MVVM): Move fetchLoyaltyData() into LoyaltyService + LoyaltyViewModel.
+// View should only bind to VM state.
+
 import SwiftUI
 
 struct RewardView: View {

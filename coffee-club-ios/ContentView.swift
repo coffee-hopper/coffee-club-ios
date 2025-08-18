@@ -12,7 +12,7 @@ struct ContentView: View {
     @State private var isPresentingScanner = false
 
     @State private var createdOrderId: Int?
-    @State private var createdOrderAmount: Double?
+    @State private var createdOrderAmount: Decimal?
 
     var body: some View {
         NavigationStack {

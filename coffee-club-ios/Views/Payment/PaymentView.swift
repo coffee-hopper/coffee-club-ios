@@ -2,7 +2,7 @@ import SwiftUI
 
 struct PaymentView: View {
     let orderId: Int
-    let totalAmount: Double
+    let totalAmount: Decimal
 
     @Binding var returnToHome: Bool
     @EnvironmentObject var cart: CartManager
@@ -20,12 +20,12 @@ struct PaymentView: View {
             Text("💳 Payment")
                 .font(.largeTitle.bold())
 
-            Text("Total: $\(String(format: "%.2f", totalAmount))")
+            Text("Total: \(PriceFormatting.string(from: totalAmount))")
                 .font(.title2)
                 .foregroundColor(.primary)
 
             Picker("Payment Method", selection: $selectedMethod) {
-                ForEach(methods, id: \ .self) { method in
+                ForEach(methods, id: \.self) { method in
                     Text(method.capitalized)
                 }
             }
@@ -110,7 +110,7 @@ struct PaymentView: View {
         )
 
         guard let url = URL(string: "http://localhost:3000/payments"),
-              let data = try? JSONEncoder().encode(payload)
+            let data = try? JSONEncoder().encode(payload)
         else {
             print("❌ Failed to encode payment request")
             return

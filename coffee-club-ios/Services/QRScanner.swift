@@ -5,7 +5,7 @@ struct QRScanner: View {
     @Binding var isPresentingScanner: Bool
     @Binding var navigateToPayment: Bool
     @Binding var createdOrderId: Int?
-    @Binding var createdOrderAmount: Double?
+    @Binding var createdOrderAmount: Decimal?
 
     var body: some View {
         IconButton(systemName: "qrcode") {
@@ -46,12 +46,12 @@ struct QRScanner: View {
                             return OrderItem(
                                 product: ProductRef(id: product.id),
                                 quantity: item.quantity,
-                                price: Double(product.price)
+                                price: Decimal(product.price)
                             )
                         }
 
                         let totalAmount = orderItems.reduce(0.0) {
-                            $0 + ($1.price * Double($1.quantity))
+                            $0 + ($1.price * Decimal($1.quantity))
                         }
 
                         let orderPayload = OrderRequest(
