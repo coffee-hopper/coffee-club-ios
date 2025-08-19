@@ -5,8 +5,10 @@ import SwiftUI
 struct ContentView: View {
     var auth: AuthViewModel
 
-    @StateObject private var cart = CartManager()
     @EnvironmentObject var coordinator: ViewCoordinator
+    @EnvironmentObject var nav: NavigationCoordinator
+
+    @StateObject private var cart = CartManager()
 
     @State private var selectedCategory = "coffee"
     @State private var searchText: String = ""
@@ -22,6 +24,7 @@ struct ContentView: View {
         AppEnvironment.makeDefault(
             apiBaseURL: URL(string: API.baseURL)!,
             coordinator: coordinator,
+            nav: nav,
             tokenProvider: auth
         )
     }
@@ -110,7 +113,7 @@ struct ContentView: View {
 
                 )
                 .environmentObject(cart)
-                .environmentObject(auth)                             // ⬅️ TEMP
+                .environmentObject(auth)  // ⬅️ TEMP
             }
 
             .navigationDestination(isPresented: $coordinator.showProductDetail) {
@@ -127,11 +130,4 @@ struct ContentView: View {
             coordinator.resetAll()
         }
     }
-}
-
-#Preview {
-    let auth = AuthViewModel()
-    return ContentView(auth: auth)
-        .environmentObject(auth)
-        .environmentObject(ViewCoordinator())
 }

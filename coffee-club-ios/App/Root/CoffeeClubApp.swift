@@ -3,9 +3,10 @@ import SwiftUI
 
 @main
 struct coffee_club_iosApp: App {
+    @StateObject private var coordinator = ViewCoordinator()
+    @StateObject private var nav = NavigationCoordinator()
     @StateObject private var auth = AuthViewModel()
     @StateObject private var cart = CartManager()
-    @StateObject private var coordinator = ViewCoordinator()
 
     @AppStorage("appTheme") private var appTheme: AppTheme = .system
 
@@ -17,6 +18,7 @@ struct coffee_club_iosApp: App {
                         .environmentObject(auth)
                         .environmentObject(cart)
                         .environmentObject(coordinator)
+                        .environmentObject(nav)
                 } else {
                     LoginScreen()
                         .environmentObject(auth)
