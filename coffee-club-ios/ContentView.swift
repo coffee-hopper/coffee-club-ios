@@ -1,3 +1,5 @@
+//TODO : look AppEnvironment ok for now part- remove later ?
+
 import SwiftUI
 
 struct ContentView: View {
@@ -10,9 +12,19 @@ struct ContentView: View {
     @State private var searchText: String = ""
 
     @State private var isPresentingScanner = false
+    @State private var navigateToPayment = false
 
     @State private var createdOrderId: Int?
     @State private var createdOrderAmount: Decimal?
+
+    // Simple computed env (ok for now)
+    private var environment: AppEnvironment {
+        AppEnvironment.makeDefault(
+            apiBaseURL: URL(string: API.baseURL)!,
+            coordinator: coordinator,
+            tokenProvider: auth
+        )
+    }
 
     var body: some View {
         NavigationStack {
@@ -39,8 +51,15 @@ struct ContentView: View {
 
                     FooterView(
                         isPresentingScanner: $isPresentingScanner,
+                        navigateToPayment: .init(  // <- bridge to coordinator
+                            get: { coordinator.navigateToPayment },
+                            set: { coordinator.navigateToPayment = $0 }
+                        ),
                         createdOrderId: $createdOrderId,
-                        createdOrderAmount: $createdOrderAmount
+                        createdOrderAmount: $createdOrderAmount,
+                        productService: environment.productService,
+                        orderService: environment.orderService,
+                        tokenProvider: environment.tokenProvider
                     )
                     .environmentObject(coordinator)
                     .frame(height: geo.size.height * 0.075)
@@ -85,9 +104,13 @@ struct ContentView: View {
                     navigateToPayment: $coordinator.navigateToPayment,
                     showCartView: $coordinator.showCart,
                     createdOrderId: $createdOrderId,
-                    createdOrderAmount: $createdOrderAmount
+                    createdOrderAmount: $createdOrderAmount,
+                    orderService: environment.orderService,  // ⬅️ TEMP
+                    tokenProvider: environment.tokenProvider  // ⬅️ TEMP
+
                 )
                 .environmentObject(cart)
+                .environmentObject(auth)                             // ⬅️ TEMP
             }
 
             .navigationDestination(isPresented: $coordinator.showProductDetail) {

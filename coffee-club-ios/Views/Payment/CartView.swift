@@ -2,12 +2,17 @@ import SwiftUI
 
 struct CartView: View {
     @EnvironmentObject var cart: CartManager
+    @EnvironmentObject var auth: AuthViewModel
 
     @Binding var returnToHome: Bool
     @Binding var navigateToPayment: Bool
     @Binding var showCartView: Bool
     @Binding var createdOrderId: Int?
     @Binding var createdOrderAmount: Decimal?
+
+    // TEMP:  inject services (temporary until we add CartViewModel)
+    let orderService: OrderServiceProtocol
+    let tokenProvider: TokenProviding?
 
     var totalAmount: Decimal {
         cart.items.reduce(0.0) { $0 + (Decimal($1.product.price) * Decimal($1.quantity)) }
@@ -106,33 +111,30 @@ struct CartView: View {
         .navigationBarBackButtonHidden(false)
     }
 
+    // TEMP
     private func createOrderFromCart() {
-        guard let orderPayload = cart.createOrderPayload(),
-            let orderData = try? JSONEncoder().encode(orderPayload)
+        guard
+            let idString = auth.user?.id,  
+            let userId = Int(idString),
+            let payload = cart.createOrderPayload(userId: userId)
         else {
-            print("❌ Failed to prepare cart order")
+            print("❌ Missing/invalid user id or failed to build payload")
             return
         }
 
-        var request = URLRequest(url: URL(string: "http://localhost:3000/orders")!)
-        request.httpMethod = "POST"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.httpBody = orderData
-
-        URLSession.shared.dataTask(with: request) { data, _, _ in
-            guard let data = data,
-                let order = try? JSONDecoder().decode(OrderResponse.self, from: data)
-            else {
-                print("❌ Failed to create order from cart")
-                return
+        Task {
+            do {
+                let order = try await orderService.createOrder(payload, token: tokenProvider?.token)
+                await MainActor.run {
+                    self.createdOrderId = order.id
+                    self.createdOrderAmount = order.totalAmount
+                    self.navigateToPayment = true
+                    self.showCartView = false
+                }
+            } catch {
+                print("❌ Failed to create order from cart:", error)
             }
-
-            DispatchQueue.main.async {
-                self.createdOrderId = order.id
-                self.createdOrderAmount = order.totalAmount
-                self.navigateToPayment = true
-                self.showCartView = false
-            }
-        }.resume()
+        }
     }
+
 }

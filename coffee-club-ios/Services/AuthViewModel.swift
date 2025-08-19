@@ -65,3 +65,5 @@ class AuthViewModel: ObservableObject {
         try? keychain.removeAll()
     }
 }
+
+extension AuthViewModel: TokenProviding {} 

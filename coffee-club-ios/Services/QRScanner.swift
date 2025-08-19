@@ -1,3 +1,5 @@
+// TODO: inject services temporaly(productService-orderService-tokenProvider..) (later, these goes into a ViewModel)
+
 import CodeScanner
 import SwiftUI
 
@@ -7,94 +9,75 @@ struct QRScanner: View {
     @Binding var createdOrderId: Int?
     @Binding var createdOrderAmount: Decimal?
 
+    let productService: ProductServiceProtocol
+    let orderService: OrderServiceProtocol
+    let tokenProvider: TokenProviding?
+
     var body: some View {
-        IconButton(systemName: "qrcode") {
-            self.isPresentingScanner = true
-        }
-        .sheet(isPresented: $isPresentingScanner) {
-            scannerSheet
-        }
+        IconButton(systemName: "qrcode") { self.isPresentingScanner = true }
+            .sheet(isPresented: $isPresentingScanner) { scannerSheet }
     }
 
     var scannerSheet: some View {
-        CodeScannerView(
-            codeTypes: [.qr],
-            completion: { result in
-                if case let .success(code) = result {
-                    self.isPresentingScanner = false
-                    print("📦 Scanned QR Content:\n\(code.string)")
+        CodeScannerView(codeTypes: [.qr]) { result in
+            guard case let .success(code) = result else { return }
+            self.isPresentingScanner = false
+            handleScanned(code: code.string)
+        }
+    }
 
-                    guard let data = code.string.data(using: .utf8),
-                          let payload = try? JSONDecoder().decode(QRPayload.self, from: data)
-                    else {
-                        print("❌ Failed to decode QR payload")
-                        return
+    private func handleScanned(code: String) {
+        guard let data = code.data(using: .utf8),
+            let payload = try? JSONDecoder().decode(QRPayload.self, from: data)
+        else {
+            print("❌ Failed to decode QR payload")
+            return
+        }
+
+        Task {
+            do {
+                // 1) fetch products via service
+                let products: [Product] = try await productService.fetchProducts(
+                    token: tokenProvider?.token
+                )
+
+                // 2) map to order items
+                let orderItems: [OrderItem] = payload.items.compactMap { item in
+                    guard let product = products.first(where: { $0.id == item.productId }) else {
+                        return nil
                     }
-
-                    let productURL = URL(string: "http://localhost:3000/products")!
-                    URLSession.shared.dataTask(with: productURL) { data, _, _ in
-                        guard let data = data,
-                              let products = try? JSONDecoder().decode([Product].self, from: data)
-                        else {
-                            print("❌ Failed to fetch products")
-                            return
-                        }
-
-                        let orderItems: [OrderItem] = payload.items.compactMap { item in
-                            guard let product = products.first(where: { $0.id == item.productId })
-                            else { return nil }
-                            return OrderItem(
-                                product: ProductRef(id: product.id),
-                                quantity: item.quantity,
-                                price: Decimal(product.price)
-                            )
-                        }
-
-                        let totalAmount = orderItems.reduce(0.0) {
-                            $0 + ($1.price * Decimal($1.quantity))
-                        }
-
-                        let orderPayload = OrderRequest(
-                            user: payload.userId,
-                            items: orderItems,
-                            totalAmount: totalAmount,
-                            status: "success"
-                        )
-
-                        guard let orderData = try? JSONEncoder().encode(orderPayload) else {
-                            return
-                        }
-
-                        var orderRequest = URLRequest(
-                            url: URL(string: "http://localhost:3000/orders")!
-                        )
-                        orderRequest.httpMethod = "POST"
-                        orderRequest.setValue(
-                            "application/json",
-                            forHTTPHeaderField: "Content-Type"
-                        )
-                        orderRequest.httpBody = orderData
-
-                        URLSession.shared.dataTask(with: orderRequest) { data, _, _ in
-                            guard let data = data,
-                                  let order = try? JSONDecoder().decode(
-                                      OrderResponse.self,
-                                      from: data
-                                  )
-                            else {
-                                print("❌ Order creation failed")
-                                return
-                            }
-
-                            DispatchQueue.main.async {
-                                self.createdOrderId = order.id
-                                self.createdOrderAmount = order.totalAmount
-                                self.navigateToPayment = true
-                            }
-                        }.resume()
-                    }.resume()
+                    return OrderItem(
+                        product: ProductRef(id: product.id),
+                        quantity: item.quantity,
+                        price: Decimal(product.price)
+                    )
                 }
+
+                let totalAmount = orderItems.reduce(Decimal(0)) {
+                    $0 + ($1.price * Decimal($1.quantity))
+                }
+
+                let orderPayload = OrderRequest(
+                    user: payload.userId,
+                    items: orderItems,
+                    totalAmount: totalAmount,
+                    status: "success"
+                )
+
+                // 3) create order via service
+                let order: OrderResponse = try await orderService.createOrder(
+                    orderPayload,
+                    token: tokenProvider?.token
+                )
+
+                await MainActor.run {
+                    self.createdOrderId = order.id
+                    self.createdOrderAmount = order.totalAmount
+                    self.navigateToPayment = true
+                }
+            } catch {
+                print("❌ QR flow failed:", error)
             }
-        )
+        }
     }
 }

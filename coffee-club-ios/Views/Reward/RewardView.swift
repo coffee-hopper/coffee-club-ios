@@ -5,7 +5,7 @@ import SwiftUI
 
 struct RewardView: View {
     @EnvironmentObject var auth: AuthViewModel
-    @State private var loyaltyStats = LoyaltyStats(
+    @State private var loyaltyStatus = LoyaltyStatus(
         stars: 0,
         rewards: 0,
         remainingToNext: 0,
@@ -13,7 +13,7 @@ struct RewardView: View {
     )
 
     private var currentDrinkStack: Int {
-        loyaltyStats.requiredStars - loyaltyStats.remainingToNext
+        loyaltyStatus.requiredStars - loyaltyStatus.remainingToNext
     }
 
     var body: some View {
@@ -27,12 +27,12 @@ struct RewardView: View {
                     HStack(alignment: .center, spacing: 4) {
                         Image(systemName: "star.fill")
                             .foregroundColor(.yellow)
-                        Text("\(loyaltyStats.stars )")
+                        Text("\(loyaltyStatus.stars )")
                             .font(.system(size: 32, weight: .bold))
                             .foregroundColor(.white)
                     }
 
-                    Text("\(loyaltyStats.rewards) free Coffee")
+                    Text("\(loyaltyStatus.rewards) free Coffee")
                         .foregroundColor(Color("GreenEnergic").opacity(0.7))
                         .font(.footnote)
                 }
@@ -58,14 +58,14 @@ struct RewardView: View {
                             to: CGFloat(
                                 min(
                                     CGFloat(currentDrinkStack)
-                                        / CGFloat(loyaltyStats.requiredStars),
+                                        / CGFloat(loyaltyStatus.requiredStars),
                                     1.0
                                 )
                             )
                         )
                         .stroke(Color("GreenEnergic"), lineWidth: 8)
                         .rotationEffect(Angle(degrees: -90))
-                        .animation(.easeOut(duration: 0.8), value: loyaltyStats.stars)
+                        .animation(.easeOut(duration: 0.8), value: loyaltyStatus.stars)
                         .frame(height: geo.size.height * 0.75)
 
                     VStack(alignment: .center, spacing: geo.size.height * 0.15) {
@@ -77,7 +77,7 @@ struct RewardView: View {
                         }
                         .frame(width: geo.size.height * 0.4, height: geo.size.height * 0.4)
 
-                        Text("\(currentDrinkStack)/\(loyaltyStats.requiredStars)")
+                        Text("\(currentDrinkStack)/\(loyaltyStatus.requiredStars)")
                             .font(.footnote)
                             .foregroundColor(Color("TextSecondary"))
                     }
@@ -134,9 +134,9 @@ struct RewardView: View {
             }
 
             do {
-                let decoded = try JSONDecoder().decode(LoyaltyStats.self, from: data)
+                let decoded = try JSONDecoder().decode(LoyaltyStatus.self, from: data)
                 DispatchQueue.main.async {
-                    self.loyaltyStats = decoded
+                    self.loyaltyStatus = decoded
                 }
             } catch {
                 print("❌ Failed to decode loyalty stats:", error)

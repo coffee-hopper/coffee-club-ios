@@ -3,8 +3,13 @@ import SwiftUI
 struct FooterView: View {
     @EnvironmentObject var coordinator: ViewCoordinator
     @Binding var isPresentingScanner: Bool
+    @Binding var navigateToPayment: Bool
     @Binding var createdOrderId: Int?
     @Binding var createdOrderAmount: Decimal?
+    
+    let productService: ProductServiceProtocol
+    let orderService: OrderServiceProtocol
+    let tokenProvider: TokenProviding?
 
     var body: some View {
         HStack {
@@ -18,9 +23,12 @@ struct FooterView: View {
 
             QRScanner(
                 isPresentingScanner: $isPresentingScanner,
-                navigateToPayment: $coordinator.navigateToPayment,
+                navigateToPayment: $navigateToPayment,
                 createdOrderId: $createdOrderId,
-                createdOrderAmount: $createdOrderAmount
+                createdOrderAmount: $createdOrderAmount,
+                productService: productService,
+                orderService: orderService,
+                tokenProvider: tokenProvider
             )
 
             Spacer()

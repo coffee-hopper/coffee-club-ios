@@ -1,6 +1,6 @@
 import Foundation
 
-struct LoyaltyStats: Codable {
+struct LoyaltyStatus: Codable {
     let stars: Int
     let rewards: Int
     let remainingToNext: Int

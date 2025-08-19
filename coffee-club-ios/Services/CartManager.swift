@@ -1,4 +1,5 @@
-// TODO: replace with real user id from AuthVM
+//TODO: In CartManager (temporary; later we’ll move to OrderService or a VM) (this todo added during createOrderPayload userId added fix)
+
 
 import Foundation
 
@@ -54,28 +55,12 @@ final class CartManager: ObservableObject {
         }
     }
 
-    func createOrderPayload() -> OrderRequest? {
+    func createOrderPayload(userId: Int) -> OrderRequest? {
         guard !items.isEmpty else { return nil }
-
         let orderItems = items.map {
-            OrderItem(
-                product: ProductRef(id: $0.product.id),
-                quantity: $0.quantity,
-                price: Decimal($0.product.price)
-            )
+            OrderItem(product: .init(id: $0.product.id), quantity: $0.quantity, price: Decimal($0.product.price))
         }
-
-        let total: Decimal = orderItems.reduce(.zero) { partial, item in
-            partial + (item.price * Decimal(item.quantity))
-        }
-
-        let payload = OrderRequest(
-            user: 1,  // TODO: replace with real user id from AuthVM
-            items: orderItems,
-            totalAmount: total,
-            status: "success"
-        )
-
-        return payload
+        let total = orderItems.reduce(Decimal.zero) { $0 + $1.price * Decimal($1.quantity) }
+        return OrderRequest(user: userId, items: orderItems, totalAmount: total, status: "success")
     }
 }
