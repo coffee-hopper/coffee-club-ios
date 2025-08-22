@@ -19,7 +19,7 @@ struct ContentView: View {
     @State private var createdOrderId: Int?
     @State private var createdOrderAmount: Decimal?
 
-    // Simple computed env (ok for now)
+    // LOOK : Simple computed env
     private var environment: AppEnvironment {
         AppEnvironment.makeDefault(
             apiBaseURL: URL(string: API.baseURL)!,
@@ -47,7 +47,9 @@ struct ContentView: View {
                         showAllBinding: $coordinator.showProductList,
                         searchText: $searchText,
                         category: $selectedCategory,
-                        heightUnit: geo.size.height * 0.60
+                        heightUnit: geo.size.height * 0.60,
+                        environment: environment,
+                        nav: nav
                     )
                     .environmentObject(cart)
                     .frame(height: geo.size.height * 0.60)
@@ -108,12 +110,12 @@ struct ContentView: View {
                     showCartView: $coordinator.showCart,
                     createdOrderId: $createdOrderId,
                     createdOrderAmount: $createdOrderAmount,
-                    orderService: environment.orderService,  // ⬅️ TEMP
-                    tokenProvider: environment.tokenProvider  // ⬅️ TEMP
+                    orderService: environment.orderService,  // TEMP
+                    tokenProvider: environment.tokenProvider  // TEMP
 
                 )
                 .environmentObject(cart)
-                .environmentObject(auth)  // ⬅️ TEMP
+                .environmentObject(auth)  // TEMP
             }
 
             .navigationDestination(isPresented: $coordinator.showProductDetail) {

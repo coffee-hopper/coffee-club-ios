@@ -6,23 +6,38 @@ struct ProductView: View {
     @Binding var searchText: String
     @Binding var category: String
 
-    @EnvironmentObject var auth: AuthViewModel
-    @State private var allProducts: [Product] = []
-
-    @State private var isSearching = false
-    @FocusState private var isTextFieldFocused: Bool
-
-    @State private var activeProductId: Int? = nil
-
     let heightUnit: CGFloat
 
-    var filteredProducts: [Product] {
-        allProducts
-            .filter { product in
-                product.category.localizedCaseInsensitiveContains(category)
-                    && (searchText.isEmpty
-                        || product.name.localizedCaseInsensitiveContains(searchText))
-            }
+    @EnvironmentObject var auth: AuthViewModel
+    @EnvironmentObject var coordinator: ViewCoordinator
+    @EnvironmentObject var nav: NavigationCoordinator
+    @Environment(\.appEnvironment) private var environment
+
+    @StateObject private var vm: ProductListViewModel
+
+    init(
+        title: String,
+        showAllBinding: Binding<Bool>,
+        searchText: Binding<String>,
+        category: Binding<String>,
+        heightUnit: CGFloat,
+        environment: AppEnvironment,
+        nav: NavigationCoordinator
+    ) {
+        self.title = title
+        self._showAllBinding = showAllBinding
+        self._searchText = searchText
+        self._category = category
+        self.heightUnit = heightUnit
+        _vm = StateObject(
+            wrappedValue: ProductListViewModel(
+                productService: environment.productService,
+                tokenProvider: environment.tokenProvider,
+                nav: nav,
+                selectedCategory: category.wrappedValue,
+                searchText: searchText.wrappedValue
+            )
+        )
     }
 
     var body: some View {
@@ -147,27 +162,9 @@ struct ProductView: View {
                 }
                 .frame(height: heightUnit * 0.15)
 
-                // MARK: Product Cards & Header
-                HStack(alignment: .center) {
-                    Text("Special for you")
-                        .font(.system(size: 20).bold())
-
-                    Spacer()
-
-                    Button("See All \(title.capitalized)s") {
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
-                            showAllBinding = true
-                        }
-                    }
-                    .foregroundColor(Color(.accent))
-                    .font(.system(size: 12).bold())
-                }
-                .frame(height: heightUnit * 0.1)
-                .padding(.horizontal, 12)
-
                 ScrollView(.horizontal, showsIndicators: false) {
-                    HStack {
-                        ForEach(filteredProducts) { product in
+                    HStack(spacing: 12) {
+                        ForEach(vm.filtered) { product in
                             ProductCard(
                                 product: product,
                                 heightUnit: heightUnit * 0.55,
@@ -175,51 +172,30 @@ struct ProductView: View {
                             )
                         }
                     }
-
+                    .padding(.horizontal, 12)
                 }
                 .frame(height: heightUnit * 0.55)
+            }
+
+            switch vm.state {
+            case .loading:
+                ProgressView().scaleEffect(1.2)
+            case .error(let msg):
+                Text(msg).font(.callout).foregroundColor(.red).padding(.top, 8)
+            default:
+                EmptyView()
             }
         }
         .padding(.horizontal)
         .onAppear {
-            fetchProducts()
+            vm.load()
         }
+        .onChange(of: category) { vm.selectedCategory = category }
+        .onChange(of: searchText) { vm.searchText = searchText }
     }
 
-    private func fetchProducts() {
-        guard let token = auth.token else {
-            print("❌ No token available in ProductView")
-            return
-        }
-
-        guard let url = URL(string: "http://localhost:3000/products") else {
-            print("❌ Invalid /products endpoint")
-            return
-        }
-
-        var request = URLRequest(url: url)
-        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-
-        URLSession.shared.dataTask(with: request) { data, _, error in
-            if let error = error {
-                print("❌ Product fetch error: \(error.localizedDescription)")
-                return
-            }
-
-            guard let data = data else {
-                print("⚠️ No product response")
-                return
-            }
-
-            do {
-                let decoded = try JSONDecoder().decode([Product].self, from: data)
-                DispatchQueue.main.async {
-                    self.allProducts = decoded
-                }
-                print("✅ Products loaded: \(decoded.count)")
-            } catch {
-                print("❌ JSON decode error: \(error.localizedDescription)")
-            }
-        }.resume()
-    }
+    // MARK: - Local UI state for search field
+    @State private var isSearching = false
+    @FocusState private var isTextFieldFocused: Bool
+    @State private var activeProductId: Int? = nil
 }
