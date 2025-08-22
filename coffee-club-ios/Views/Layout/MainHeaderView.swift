@@ -46,9 +46,3 @@ struct MainHeaderView: View {
     }
 
 }
-
-#Preview {
-    let auth = AuthViewModel()
-    return ContentView(auth: auth)
-        .environmentObject(auth)
-}

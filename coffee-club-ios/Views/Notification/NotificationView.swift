@@ -9,14 +9,3 @@ struct NotificationView: View {
     }
 }
 
-#Preview {
-    struct PreviewWrapper: View {
-        @State private var showNotification = true
-        var body: some View {
-            NotificationView(isActive: $showNotification)
-                .environmentObject(AuthViewModel())
-        }
-    }
-
-    return PreviewWrapper()
-}

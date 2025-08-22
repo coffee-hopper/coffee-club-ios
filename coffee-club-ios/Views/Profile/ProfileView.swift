@@ -106,14 +106,4 @@ struct ProfileView: View {
     }
 }
 
-#Preview {
-    struct PreviewWrapper: View {
-        @State private var showProfile = true
-        var body: some View {
-            ProfileView(isActive: $showProfile)
-                .environmentObject(AuthViewModel())
-        }
-    }
 
-    return PreviewWrapper()
-}

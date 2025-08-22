@@ -160,11 +160,3 @@ struct PaymentView: View {
     }
 }
 
-#Preview {
-    PaymentView(
-        orderId: 123,
-        totalAmount: 18.50,
-        returnToHome: .constant(false)
-    )
-    .environmentObject(CartManager())
-}

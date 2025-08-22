@@ -146,8 +146,3 @@ struct RewardView: View {
     }
 }
 
-#Preview {
-    let auth = AuthViewModel()
-    return ContentView(auth: auth)
-        .environmentObject(auth)
-}

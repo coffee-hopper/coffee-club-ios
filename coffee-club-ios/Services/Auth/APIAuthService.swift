@@ -29,7 +29,6 @@ final class APIAuthService: NSObject, AuthServiceProtocol {
             throw AppError.unknown(underlying: nil)
         }
 
-        // Avoid capturing `self` in the @Sendable continuation closure
         let token: String = try await withCheckedThrowingContinuation { cont in
             Task { @MainActor [weak self] in
                 guard let self else {
@@ -65,7 +64,6 @@ final class APIAuthService: NSObject, AuthServiceProtocol {
                     }
                 }
 
-                // Optional: session.prefersEphemeralWebBrowserSession = true
                 session.presentationContextProvider = self
                 self.session = session
                 _ = session.start()

@@ -223,9 +223,3 @@ struct ProductView: View {
         }.resume()
     }
 }
-
-#Preview {
-    let auth = AuthViewModel()
-    return ContentView(auth: auth)
-        .environmentObject(auth)
-}

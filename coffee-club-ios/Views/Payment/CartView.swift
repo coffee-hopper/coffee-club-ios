@@ -114,8 +114,7 @@ struct CartView: View {
     // TEMP
     private func createOrderFromCart() {
         guard
-            let idString = auth.user?.id,  
-            let userId = Int(idString),
+            let userId = auth.user?.id,
             let payload = cart.createOrderPayload(userId: userId)
         else {
             print("❌ Missing/invalid user id or failed to build payload")
@@ -136,5 +135,4 @@ struct CartView: View {
             }
         }
     }
-
 }
