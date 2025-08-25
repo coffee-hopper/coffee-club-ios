@@ -57,6 +57,26 @@ struct ProductView: View {
 
             // MARK: Categories & SearchBar
             VStack(spacing: 0) {
+
+                // MARK: Product Cards & Header
+                HStack(alignment: .center) {
+                    Text("Special for you")
+                        .font(.system(size: 20).bold())
+
+                    Spacer()
+
+                    Button("See All \(title.capitalized)s") {
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+                            showAllBinding = true
+                        }
+                    }
+                    .foregroundColor(Color(.accent))
+                    .font(.system(size: 12).bold())
+                }
+                .frame(height: heightUnit * 0.07)
+                .padding(.horizontal, 12)
+                .padding(.top, 0)
+
                 // MARK: Categories
                 HStack {
                     VStack {
