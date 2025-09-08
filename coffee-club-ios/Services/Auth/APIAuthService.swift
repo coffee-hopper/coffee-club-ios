@@ -1,103 +1,116 @@
-//TODO: In old GoogleAuthService's also sent mobile-auth: ios. If the backend depends on it, keep that header in the new service (as shown).
-
-import AuthenticationServices
 import Foundation
-import SwiftUI
+import GoogleSignIn
+import UIKit
 
-struct AuthLoginURLResponse: Decodable { let url: String }
+struct MobileAuthRequest: Encodable { let token: String }
 
-final class APIAuthService: NSObject, AuthServiceProtocol {
+struct MobileAuthUserDTO: Decodable {
+    let id: Int
+    let username: String
+    let role: String
+    let googlePicture: String?
+}
+
+struct MobileAuthResponse: Decodable {
+    let token: String
+    let user: MobileAuthUserDTO
+}
+
+final class APIAuthService: AuthServiceProtocol {
     private let client: APIClient
-    private let callbackScheme: String
-    private var session: ASWebAuthenticationSession?
+    @MainActor private static var signInInFlight = false
 
-    init(client: APIClient, callbackScheme: String) {
-        self.client = client
-        self.callbackScheme = callbackScheme
-    }
+    init(client: APIClient) { self.client = client }
 
-    @discardableResult
+    @MainActor
     func signIn() async throws -> (token: String, user: User) {
-        let login: AuthLoginURLResponse = try await client.request(
-            AuthLoginURLResponse.self,
-            "/auth/google",
-            method: .GET,
-            headers: ["mobile-auth": "ios"]
+        let presenter = try Self.topPresenter()
+
+        let result = try await GIDSignIn.sharedInstance.signIn(withPresenting: presenter)
+
+        guard let idToken = result.user.idToken?.tokenString else {
+            throw AppError.unknown(
+                underlying: NSError(
+                    domain: "Auth",
+                    code: 0,
+                    userInfo: [NSLocalizedDescriptionKey: "Missing Google ID token"]
+                )
+            )
+        }
+
+        let resp: MobileAuthResponse = try await client.request(
+            MobileAuthResponse.self,
+            "/auth/google/mobile",
+            method: .POST,
+            headers: [
+                "mobile-auth": "ios",
+                "Content-Type": "application/json",
+            ],
+            body: MobileAuthRequest(token: idToken)
         )
 
-        guard let loginURL = URL(string: login.url) else {
-            throw AppError.unknown(underlying: nil)
-        }
+        let user = User(
+            id: resp.user.id,
+            name: resp.user.username,
+            role: resp.user.role,
+            picture: resp.user.googlePicture
+        )
 
-        let token: String = try await withCheckedThrowingContinuation { cont in
-            Task { @MainActor [weak self] in
-                guard let self else {
-                    cont.resume(throwing: AppError.unknown(underlying: nil))
-                    return
-                }
-
-                let session = ASWebAuthenticationSession(
-                    url: loginURL,
-                    callbackURLScheme: self.callbackScheme
-                ) { callbackURL, error in
-                    Task { @MainActor [weak self] in
-                        defer { self?.session = nil }
-
-                        if let error {
-                            cont.resume(throwing: error)
-                            return
-                        }
-
-                        guard let callbackURL,
-                            let comps = URLComponents(
-                                url: callbackURL,
-                                resolvingAgainstBaseURL: false
-                            ),
-                            let token = comps.queryItems?.first(where: { $0.name == "token" })?
-                                .value
-                        else {
-                            cont.resume(throwing: AppError.unknown(underlying: nil))
-                            return
-                        }
-
-                        cont.resume(returning: token)
-                    }
-                }
-
-                session.presentationContextProvider = self
-                self.session = session
-                _ = session.start()
-            }
-        }
-
-        let user = try await fetchProfile(token: token)
-        return (token, user)
+        return (resp.token, user)
     }
 
     func fetchProfile(token: String) async throws -> User {
-        try await client.request(User.self, "/auth/profile", method: .GET, token: token)
+        let dto = try await client.request(
+            MobileAuthUserDTO.self,
+            "/auth/profile",
+            method: .GET,
+            token: token
+        )
+        return User(id: dto.id, name: dto.username, role: dto.role, picture: dto.googlePicture)
+    }
+
+    @MainActor
+    func signOut() {
+        GIDSignIn.sharedInstance.signOut()
     }
 }
 
-// MARK: - ASWebAuthenticationPresentationContextProviding
-extension APIAuthService: ASWebAuthenticationPresentationContextProviding {
-    func presentationAnchor(for session: ASWebAuthenticationSession) -> ASPresentationAnchor {
+extension APIAuthService {
+    @MainActor
+    fileprivate static func topPresenter() throws -> UIViewController {
+        guard
+            let scene = UIApplication.shared.connectedScenes
+                .compactMap({ $0 as? UIWindowScene })
+                .first(where: { $0.activationState == .foregroundActive }),
+            let root = scene.keyWindow?.rootViewController
+        else {
+            throw AppError.unknown(
+                underlying: NSError(
+                    domain: "UI",
+                    code: 1,
+                    userInfo: [NSLocalizedDescriptionKey: "No presenter available"]
+                )
+            )
+        }
+        let top = root.topMost()
 
-        #if canImport(UIKit)
-            if let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-                let wnd = scene.keyWindow
-            {
-                return wnd
-            }
-            return UIApplication.shared.windows.first ?? ASPresentationAnchor()
-        #else
-            return ASPresentationAnchor()
-        #endif
+        return top
     }
 }
 
-#if canImport(UIKit)
-    extension UIWindowScene {
-        fileprivate var keyWindow: UIWindow? { windows.first { $0.isKeyWindow } }
+extension UIViewController {
+    fileprivate func topMost() -> UIViewController {
+        if let presented = presentedViewController { return presented.topMost() }
+        if let nav = self as? UINavigationController, let visible = nav.visibleViewController {
+            return visible.topMost()
+        }
+        if let tab = self as? UITabBarController, let selected = tab.selectedViewController {
+            return selected.topMost()
+        }
+        return self
     }
-#endif
+}
+
+extension UIWindowScene {
+    fileprivate var keyWindow: UIWindow? { windows.first { $0.isKeyWindow } }
+}

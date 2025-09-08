@@ -6,6 +6,8 @@ final class NavigationCoordinator: ObservableObject {
     @Published private(set) var route: Route = .home
 
     func goHome() { set(.home) }
+    func reset() { set(.home) }
+
     func openProduct(_ id: Int) { set(.productDetail(id: id)) }
     func openCart() { set(.cart) }
     func openPayment(orderID: Int) { set(.payment(orderID: orderID)) }

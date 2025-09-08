@@ -3,67 +3,60 @@ import Foundation
 @MainActor
 final class ProductListViewModel: ObservableObject {
     enum State: Equatable {
-        case idle
-        case loading
-        case loaded
+        case idle, loading, loaded
         case error(message: String)
     }
 
-    // Inputs (bound by the view)
-    @Published var searchText: String
-    @Published var selectedCategory: String
-
-    // Outputs
     @Published private(set) var state: State = .idle
-    @Published private(set) var allProducts: [Product] = []
+    @Published private(set) var products: [Product] = []
 
-    private let productService: ProductServiceProtocol
-    private weak var tokenProvider: TokenProviding?
-    private let nav: NavigationCoordinator
+    var initialCategory: String = ""
 
-    init(
+    private var productService: ProductServiceProtocol?
+    private weak var coordinator: ViewCoordinator?
+    private var tokenProvider: () -> String?
+
+    init() { self.tokenProvider = { nil } }
+
+    func configure(
         productService: ProductServiceProtocol,
-        tokenProvider: TokenProviding?,
-        nav: NavigationCoordinator,
-        selectedCategory: String = "coffee",
-        searchText: String = ""
+        coordinator: ViewCoordinator,
+        tokenProvider: @escaping () -> String?,
+        initialCategory: String
     ) {
+        guard self.productService == nil else { return }
         self.productService = productService
+        self.coordinator = coordinator
         self.tokenProvider = tokenProvider
-        self.nav = nav
-        self.selectedCategory = selectedCategory
-        self.searchText = searchText
-    }
-
-    var filtered: [Product] {
-        let base = allProducts.filter {
-            $0.category.lowercased() == selectedCategory.lowercased()
-        }
-        let q = searchText.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
-        guard !q.isEmpty else { return base }
-        return base.filter {
-            $0.name.lowercased().contains(q) || ($0.description?.lowercased().contains(q) ?? false)
-        }
+        self.initialCategory = initialCategory
     }
 
     func load() {
-        guard case .loading = state else {
+        guard let productService else { return }
+        guard case .idle = state else { return }
 
-            state = .loading
-            Task {
-                do {
-                    let items = try await productService.fetchProducts(token: tokenProvider?.token)
-                    allProducts = items.sorted { $0.id < $1.id }
-                    state = .loaded
-                } catch {
-                    state = .error(message: ErrorMapper.message(for: error))
+        state = .loading
+        Task {
+            do {
+                let token = tokenProvider()
+                let items = try await productService.fetchProducts(token: token)
+                if initialCategory.isEmpty {
+                    self.products = items
+                } else {
+                    self.products = items.filter {
+                        $0.category.lowercased() == initialCategory.lowercased()
+                    }
                 }
+                self.products.sort { $0.id < $1.id }
+                self.state = .loaded
+            } catch {
+                self.state = .error(message: ErrorMapper.message(for: error))
             }
-            return
         }
     }
 
-    func onProductTapped(id: Int) {
-        nav.openProduct(id)
+    func onProductTapped(_ p: Product) {
+        coordinator?.selectedProduct = p
+        coordinator?.showProductDetail = true
     }
 }

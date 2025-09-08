@@ -96,7 +96,7 @@ struct ProfileView: View {
                 titleVisibility: .visible
             ) {
                 Button("Log Out", role: .destructive) {
-                    auth.logout()
+                    auth.signOutTapped()
                     print("🔓 Logged out")
                 }
                 Button("Cancel", role: .cancel) {}

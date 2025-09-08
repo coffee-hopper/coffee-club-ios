@@ -1,64 +1,39 @@
+//TODO: currently Search bar isint activating probably isSearchFocussed state not triggering.
+
 import SwiftUI
 
 struct ProductView: View {
-    let title: String
-    @Binding var showAllBinding: Bool
     @Binding var searchText: String
     @Binding var category: String
 
+    let title: String
     let heightUnit: CGFloat
 
     @EnvironmentObject var auth: AuthViewModel
     @EnvironmentObject var coordinator: ViewCoordinator
-    @EnvironmentObject var nav: NavigationCoordinator
     @Environment(\.appEnvironment) private var environment
 
-    @StateObject private var vm: ProductListViewModel
-
-    init(
-        title: String,
-        showAllBinding: Binding<Bool>,
-        searchText: Binding<String>,
-        category: Binding<String>,
-        heightUnit: CGFloat,
-        environment: AppEnvironment,
-        nav: NavigationCoordinator
-    ) {
-        self.title = title
-        self._showAllBinding = showAllBinding
-        self._searchText = searchText
-        self._category = category
-        self.heightUnit = heightUnit
-        _vm = StateObject(
-            wrappedValue: ProductListViewModel(
-                productService: environment.productService,
-                tokenProvider: environment.tokenProvider,
-                nav: nav,
-                selectedCategory: category.wrappedValue,
-                searchText: searchText.wrappedValue
-            )
-        )
-    }
+    @StateObject private var vm = ProductViewModel()
+    @State private var activeProductId: Int? = nil
+    @FocusState private var isSearchFocused: Bool
 
     var body: some View {
         ZStack {
-            if isSearching {
+            if searchText.isEmpty {
                 Color.clear
                     .contentShape(Rectangle())
                     .onTapGesture {
                         withAnimation {
-                            isSearching = false
-                            isTextFieldFocused = false
                             searchText = ""
+                            isSearchFocused = false
                         }
                     }
                     .ignoresSafeArea()
             }
 
-            // MARK: Categories & SearchBar
             VStack(spacing: 0) {
 
-                // MARK: Product Cards & Header
+                // MARK: Header
                 HStack(alignment: .center) {
                     Text("Special for you")
                         .font(.system(size: 20).bold())
@@ -67,7 +42,7 @@ struct ProductView: View {
 
                     Button("See All \(title.capitalized)s") {
                         DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
-                            showAllBinding = true
+                            vm.openSeeAll()
                         }
                     }
                     .foregroundColor(Color(.accent))
@@ -79,42 +54,15 @@ struct ProductView: View {
 
                 // MARK: Categories
                 HStack {
-                    VStack {
-                        IconButton(systemName: "cup.and.heat.waves.fill") {
-                            category = "coffee"
-                        }
-                        Text("Coffee")
-                            .foregroundColor(
-                                category == "coffee"
-                                    ? Color("TextPrimary") : Color("TextPrimary").opacity(0.45)
-                            )
-                    }
+                    categoryButton("Coffee", icon: "cup.and.heat.waves.fill", tag: "coffee")
 
                     Spacer()
 
-                    VStack {
-                        IconButton(systemName: "fork.knife") {
-                            category = "food"
-                        }
-                        Text("Food")
-                            .foregroundColor(
-                                category == "food"
-                                    ? Color("TextPrimary") : Color("TextPrimary").opacity(0.45)
-                            )
-                    }
+                    categoryButton("Food", icon: "fork.knife", tag: "food")
 
                     Spacer()
 
-                    VStack {
-                        IconButton(systemName: "mug") {
-                            category = "tea"
-                        }
-                        Text("Tea")
-                            .foregroundColor(
-                                category == "tea"
-                                    ? Color("TextPrimary") : Color("TextPrimary").opacity(0.45)
-                            )
-                    }
+                    categoryButton("Tea", icon: "mug", tag: "tea")
                 }
                 .padding(.horizontal, 12)
                 .frame(height: heightUnit * 0.2)
@@ -122,29 +70,21 @@ struct ProductView: View {
                 // MARK: SearchBar
                 HStack {
                     ZStack {
-                        //MARK: Invisible tap area to trigger search
+                        // MARK: Invisible tap area to trigger search
                         Color.clear
                             .frame(height: 75)
                             .contentShape(Rectangle())
                             .onTapGesture {
-                                if !isSearching {
-                                    withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
-                                        isSearching = true
-                                    }
-                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                                        isTextFieldFocused = true
-                                    }
-                                } else {
-                                    withAnimation {
-                                        isSearching = false
-                                        isTextFieldFocused = false
-                                        searchText = ""
-                                    }
+                                withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
+                                    isSearchFocused = true
+                                }
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                                    isSearchFocused = true
                                 }
                             }
 
                         HStack {
-                            if isSearching {
+                            if isSearchFocused || !searchText.isEmpty {
                                 TextField("Search...", text: $searchText)
                                     .padding(.horizontal, 10)
                                     .frame(height: 40)
@@ -152,7 +92,9 @@ struct ProductView: View {
                                         RoundedRectangle(cornerRadius: 10)
                                             .strokeBorder(Color("TextSecondary"), lineWidth: 1)
                                     )
-                                    .focused($isTextFieldFocused)
+                                    .textInputAutocapitalization(.never)
+                                    .disableAutocorrection(true)
+                                    .focused($isSearchFocused)
                                     .transition(.opacity)
                             } else {
                                 Color("TextSecondary").frame(height: 1)
@@ -162,15 +104,15 @@ struct ProductView: View {
                                 systemName: "magnifyingglass",
                                 action: {
                                     withAnimation(.spring(response: 0.8, dampingFraction: 0.8)) {
-                                        isSearching.toggle()
-                                    }
-
-                                    if !isSearching {
-                                        isTextFieldFocused = false
-                                        searchText = ""
-                                    } else {
-                                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                                            isTextFieldFocused = true
+                                        // if there is text, treat tap as "clear"; otherwise focus and open the field
+                                        if !searchText.isEmpty {
+                                            searchText = ""
+                                            isSearchFocused = false
+                                        } else {
+                                            isSearchFocused = true
+                                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                                                isSearchFocused = true
+                                            }
                                         }
                                     }
                                 }
@@ -184,7 +126,7 @@ struct ProductView: View {
 
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 12) {
-                        ForEach(vm.filtered) { product in
+                        ForEach(vm.filteredProducts) { product in
                             ProductCard(
                                 product: product,
                                 heightUnit: heightUnit * 0.55,
@@ -197,25 +139,52 @@ struct ProductView: View {
                 .frame(height: heightUnit * 0.55)
             }
 
+            //MARK: State (simple surface; no style change)
             switch vm.state {
             case .loading:
-                ProgressView().scaleEffect(1.2)
-            case .error(let msg):
-                Text(msg).font(.callout).foregroundColor(.red).padding(.top, 8)
+                ProgressView().padding(.top, 8)
+            case .error(let message):
+                Text(message)
+                    .font(.footnote)
+                    .foregroundColor(.red)
+                    .padding(.top, 6)
             default:
                 EmptyView()
             }
         }
         .padding(.horizontal)
         .onAppear {
+            vm.configure(
+                productService: environment.productService,
+                coordinator: coordinator,
+                tokenProvider: { auth.token }
+            )
+            vm.searchText = searchText
+            vm.selectedCategory = category
             vm.load()
         }
-        .onChange(of: category) { vm.selectedCategory = category }
-        .onChange(of: searchText) { vm.searchText = searchText }
+        .onChange(of: searchText) { _, newValue in
+            vm.searchText = newValue
+        }
+        .onChange(of: category) { _, newValue in
+            vm.selectedCategory = newValue
+        }
     }
 
-    // MARK: - Local UI state for search field
-    @State private var isSearching = false
-    @FocusState private var isTextFieldFocused: Bool
-    @State private var activeProductId: Int? = nil
+    private func categoryButton(_ label: String, icon: String, tag: String) -> some View {
+        VStack(spacing: 6) {
+            IconButton(
+                systemName: icon,
+                action: { category = tag }
+            )
+
+            Text(label)
+                .foregroundColor(
+                    category == tag
+                        ? Color("TextPrimary")
+                        : Color("TextPrimary").opacity(0.45)
+                )
+                .font(.footnote)
+        }
+    }
 }

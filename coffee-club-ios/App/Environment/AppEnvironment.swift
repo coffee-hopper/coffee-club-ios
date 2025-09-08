@@ -18,7 +18,7 @@ struct AppEnvironment {
     let paymentService: PaymentServiceProtocol
     let loyaltyService: LoyaltyServiceProtocol
 
-    let coordinator: ViewCoordinator  // legacy (if still used)
+    let coordinator: ViewCoordinator  // legacy will changed to navigationCoordinator
     let nav: NavigationCoordinator  // new centralized navigation
 
     let tokenProvider: TokenProviding?
@@ -35,7 +35,7 @@ extension AppEnvironment {
         let client = APIClient(baseURL: apiBaseURL)
 
         return AppEnvironment(
-            authService: GoogleSDKAuthService(client: client),
+            authService: APIAuthService(client: client),
             productService: APIProductService(client: client),
             orderService: APIOrderService(client: client),
             paymentService: APIPaymentService(client: client),

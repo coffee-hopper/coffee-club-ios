@@ -85,7 +85,6 @@ struct TaperedCardBackground: ViewModifier {
     }
 }
 
-// 👇 This part goes right below the struct
 extension View {
     func taperedCardBackground(heightUnit: CGFloat, isOutOfStock: Bool) -> some View {
         self.modifier(TaperedCardBackground(heightUnit: heightUnit, isOutOfStock: isOutOfStock))

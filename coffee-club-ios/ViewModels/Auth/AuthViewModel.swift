@@ -14,51 +14,70 @@ final class AuthViewModel: ObservableObject, TokenProviding {
     private let keychain = Keychain(service: "com.yourcompany.coffeeclub")
     private let authService: AuthServiceProtocol
     private let nav: NavigationCoordinator
+    private let legacy: ViewCoordinator
 
     var isMobileUser: Bool { user?.role == "user" }
     var isOwner: Bool { user?.role == "owner" }
 
-    init(authService: AuthServiceProtocol, nav: NavigationCoordinator) {
+    init(authService: AuthServiceProtocol, nav: NavigationCoordinator, legacy: ViewCoordinator) {
         self.authService = authService
         self.nav = nav
+        self.legacy = legacy
         restoreSession()
     }
 
+    @MainActor
     func signInTapped() {
-        state = .loading
-        Task {
-            do {
-                let (token, user) = try await authService.signIn()
-                storeSession(token: token, user: user)
-                state = .authenticated(user: user, token: token)
-                nav.goHome()
-            } catch {
-                let message = ErrorMapper.message(for: error)
-                errorMessage = message
-                state = .error(message: message)
+        guard case .loading = state else {
+            state = .loading
+
+            Task {
+                do {
+                    let (jwt, user) = try await authService.signIn()
+                    saveSession(token: jwt, user: user)
+                    state = .authenticated(user: user, token: jwt)
+                    isLoggedIn = true
+                    nav.goHome()
+                } catch {
+                    errorMessage = ErrorMapper.message(for: error)
+                    state = .error(message: errorMessage ?? "Oturum açılırken bir hata oluştu.")
+                    clearSession()
+                }
             }
+            return
         }
     }
 
-    func logout() {
-        token = nil
-        user = nil
-        isLoggedIn = false
+    @MainActor
+    func signOutTapped() {
+        authService.signOut()
+        clearSession()
         state = .signedOut
-        try? keychain.removeAll()
+        isLoggedIn = false
+        nav.reset()
     }
 
-    func storeSession(token: String, user: User) {
+    @MainActor
+    private func saveSession(token: String, user: User) {
+        keychain["jwt"] = token
+
+        if let data = try? JSONEncoder().encode(user) {
+            keychain["user"] = data.base64EncodedString()
+        }
+
         self.token = token
         self.user = user
-        self.isLoggedIn = true
-
-        keychain["jwt"] = token
-        if let encoded = try? JSONEncoder().encode(user) {
-            keychain["user"] = encoded.base64EncodedString()
-        }
     }
 
+    @MainActor
+    private func clearSession() {
+        keychain["jwt"] = nil
+        keychain["user"] = nil
+        token = nil
+        user = nil
+    }
+
+    @MainActor
     func restoreSession() {
         if let token = keychain["jwt"],
             let userData = keychain["user"],
@@ -68,9 +87,10 @@ final class AuthViewModel: ObservableObject, TokenProviding {
             self.token = token
             self.user = user
             self.isLoggedIn = true
-            print("✅ Session restored from Keychain")
+            self.state = .authenticated(user: user, token: token)
         } else {
-            print("ℹ️ No saved session found")
+            self.isLoggedIn = false
+            self.state = .idle
         }
     }
 }

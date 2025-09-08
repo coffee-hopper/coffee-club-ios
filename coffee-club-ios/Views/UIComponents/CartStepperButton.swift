@@ -45,7 +45,7 @@ struct CartStepperButton: View {
                     if actualQuantity < product.stockQuantity {
                         onTap?()
                         cart.addToCart(product)
-                        cancelReset() 
+                        cancelReset()
                     }
                 }) {
                     Image(systemName: "plus")
@@ -61,6 +61,7 @@ struct CartStepperButton: View {
             } else {
                 Button(action: {
                     if !isOutOfStock {
+                        onTap?()
                         cart.addToCart(product)
                         withAnimation {
                             showStepper = true

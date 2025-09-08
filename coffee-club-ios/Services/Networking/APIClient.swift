@@ -32,8 +32,10 @@ final class APIClient {
     ) async throws -> T {
         var url = baseURL
         url.append(path: path.trimmingCharacters(in: CharacterSet(charactersIn: "/")))
+
         var req = URLRequest(url: url)
         req.httpMethod = method.rawValue
+
         if let token { req.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization") }
         headers.forEach { req.setValue($1, forHTTPHeaderField: $0) }
 
@@ -44,17 +46,21 @@ final class APIClient {
 
         do {
             let (data, resp) = try await session.data(for: req)
+
             guard let http = resp as? HTTPURLResponse else {
                 throw AppError.network(underlying: nil)
             }
+
             guard (200..<300).contains(http.statusCode) else {
                 let message = String(data: data, encoding: .utf8)
                 if http.statusCode == 401 { throw AppError.unauthorized }
                 throw AppError.http(status: http.statusCode, message: message)
             }
+
             do { return try decoder.decode(T.self, from: data) } catch {
                 throw AppError.decoding(underlying: error)
             }
+
         } catch let err as URLError {
             switch err.code {
             case .timedOut: throw AppError.timeout

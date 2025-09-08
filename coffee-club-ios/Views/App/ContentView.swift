@@ -1,4 +1,5 @@
-//TODO : look AppEnvironment ok for now part- remove later ?
+//TODO: look AppEnvironment ok for now part- remove later ?
+//TODO: After Each payment transaction product list must be refetch so quantities updated.
 
 import SwiftUI
 
@@ -43,20 +44,18 @@ struct ContentView: View {
                         .frame(height: geo.size.height * 0.25)
 
                     ProductView(
-                        title: selectedCategory,
-                        showAllBinding: $coordinator.showProductList,
                         searchText: $searchText,
                         category: $selectedCategory,
+                        title: selectedCategory,
                         heightUnit: geo.size.height * 0.60,
-                        environment: environment,
-                        nav: nav
                     )
                     .environmentObject(cart)
+                    .environmentObject(auth)
                     .frame(height: geo.size.height * 0.60)
 
                     FooterView(
                         isPresentingScanner: $isPresentingScanner,
-                        navigateToPayment: .init(  // <- bridge to coordinator
+                        navigateToPayment: .init(
                             get: { coordinator.navigateToPayment },
                             set: { coordinator.navigateToPayment = $0 }
                         ),
@@ -126,8 +125,9 @@ struct ContentView: View {
                     EmptyView()
                 }
             }
-
         }
+        .environment(\.appEnvironment, environment)
+
         .onChange(of: coordinator.returnToHome) {
             coordinator.resetAll()
         }
