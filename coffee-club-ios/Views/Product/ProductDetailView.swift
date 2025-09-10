@@ -2,7 +2,7 @@ import SwiftUI
 
 struct ProductDetailView: View {
     let product: Product
-    @EnvironmentObject var cart: CartManager
+    @EnvironmentObject var cart: CartStoreManager
 
     var body: some View {
         ScrollView {

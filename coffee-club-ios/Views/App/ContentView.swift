@@ -9,7 +9,7 @@ struct ContentView: View {
     @EnvironmentObject var coordinator: ViewCoordinator
     @EnvironmentObject var nav: NavigationCoordinator
 
-    @StateObject private var cart = CartManager()
+    @StateObject private var cart = CartStoreManager()
 
     @State private var selectedCategory = "coffee"
     @State private var searchText: String = ""
@@ -109,12 +109,12 @@ struct ContentView: View {
                     showCartView: $coordinator.showCart,
                     createdOrderId: $createdOrderId,
                     createdOrderAmount: $createdOrderAmount,
-                    orderService: environment.orderService,  // TEMP
-                    tokenProvider: environment.tokenProvider  // TEMP
-
+                    orderService: environment.orderService,
+                    tokenProvider: environment.tokenProvider,
+                    store: cart,
+                    productService: environment.productService
                 )
-                .environmentObject(cart)
-                .environmentObject(auth)  // TEMP
+                .environmentObject(auth)
             }
 
             .navigationDestination(isPresented: $coordinator.showProductDetail) {
@@ -126,6 +126,7 @@ struct ContentView: View {
                 }
             }
         }
+        .environmentObject(cart)
         .environment(\.appEnvironment, environment)
 
         .onChange(of: coordinator.returnToHome) {

@@ -5,7 +5,7 @@ struct ProductCard: View {
     let heightUnit: CGFloat
     @Binding var activeProductId: Int?
 
-    @EnvironmentObject var cart: CartManager
+    @EnvironmentObject var cart: CartStoreManager
     @EnvironmentObject var coordinator: ViewCoordinator
 
     @State private var tiltAngle: Double = -9
@@ -31,7 +31,7 @@ struct ProductCard: View {
                 Text(PriceFormatting.string(from: Decimal(product.price)))
                     .font(.subheadline.bold())
                     .foregroundColor(.accent)
-                
+
                 Spacer()
                     .frame(height: 2)
             }
@@ -50,7 +50,6 @@ struct ProductCard: View {
                         coordinator.selectedProduct = product
                         coordinator.showProductDetail = true
                     }
-                
 
                 Spacer()
 

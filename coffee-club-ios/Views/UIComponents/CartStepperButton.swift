@@ -8,7 +8,7 @@ struct CartStepperButton: View {
     var onZeroQuantity: (() -> Void)? = nil
     var onTap: (() -> Void)? = nil
 
-    @EnvironmentObject var cart: CartManager
+    @EnvironmentObject var cart: CartStoreManager
     @State private var showStepper = false
     @State private var resetTimer: Timer?
 

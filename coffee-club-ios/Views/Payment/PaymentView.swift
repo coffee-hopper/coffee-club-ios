@@ -5,7 +5,7 @@ struct PaymentView: View {
     let totalAmount: Decimal
 
     @Binding var returnToHome: Bool
-    @EnvironmentObject var cart: CartManager
+    @EnvironmentObject var cart: CartStoreManager
 
     @State private var selectedMethod: String = "cash"
     @State private var paymentStatus: String?
