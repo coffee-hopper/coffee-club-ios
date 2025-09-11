@@ -6,34 +6,43 @@ struct PaymentView: View {
 
     @Binding var returnToHome: Bool
     @EnvironmentObject var cart: CartStoreManager
+    @Environment(\.appEnvironment) private var env
 
-    @State private var selectedMethod: String = "cash"
-    @State private var paymentStatus: String?
-    @State private var isLoading = false
-    @State private var message: String?
-    @State private var redirectProgress: CGFloat = 0.0
+    @StateObject private var vm: PaymentViewModel
 
-    let methods = ["cash", "iyzico"]
+    init(orderId: Int, totalAmount: Decimal, returnToHome: Binding<Bool>) {
+        self.orderId = orderId
+        self.totalAmount = totalAmount
+        self._returnToHome = returnToHome
+        _vm = StateObject(
+            wrappedValue: PaymentViewModel(orderId: orderId, totalAmount: totalAmount)
+        )
+    }
 
     var body: some View {
-        VStack(spacing: 24) {
-            Text("💳 Payment")
-                .font(.largeTitle.bold())
-
-            Text("Total: \(PriceFormatting.string(from: totalAmount))")
+        VStack(spacing: 16) {
+            Text("Ödeme")
                 .font(.title2)
+                .bold()
+                .padding(.top, 8)
                 .foregroundColor(.primary)
 
-            Picker("Payment Method", selection: $selectedMethod) {
-                ForEach(methods, id: \.self) { method in
+            Text("Toplam: \(format(totalAmount))")
+                .font(.headline)
+                .foregroundColor(.primary)
+
+            Picker("Payment Method", selection: $vm.selectedMethod) {
+                ForEach(["cash", "iyzico"], id: \.self) { method in
                     Text(method.capitalized)
                 }
             }
             .pickerStyle(SegmentedPickerStyle())
             .padding(.horizontal)
 
-            Button(action: submitPayment) {
-                Text(isLoading ? "Processing..." : "Pay Now")
+            Button {
+                Task { await vm.submitPayment() }
+            } label: {
+                Text(vm.ctaTitle)
                     .bold()
                     .padding()
                     .frame(maxWidth: .infinity)
@@ -41,21 +50,20 @@ struct PaymentView: View {
                     .foregroundColor(.white)
                     .cornerRadius(10)
             }
-            .disabled(isLoading)
+            .disabled(vm.isLoading)
 
-            if let status = paymentStatus {
+            if let status = vm.paymentStatus {
                 Text("Status: \(status)")
                     .foregroundColor(status == "success" ? .green : .red)
             }
 
-            if let msg = message {
+            if let msg = vm.message {
                 Text(msg)
                     .padding(.top, 4)
                     .multilineTextAlignment(.center)
-                    .foregroundColor(.secondary)
             }
 
-            if paymentStatus == "success" {
+            if vm.isSuccess {
                 VStack(spacing: 10) {
                     ZStack {
                         Circle()
@@ -64,10 +72,9 @@ struct PaymentView: View {
                             .foregroundColor(Color("TextSecondary"))
 
                         Circle()
-                            .trim(from: 0, to: redirectProgress)
+                            .trim(from: 0, to: vm.redirectProgress)
                             .stroke(Color("GreenEnergic"), lineWidth: 8)
                             .rotationEffect(.degrees(-90))
-                            .animation(.linear(duration: 1.5), value: redirectProgress)
 
                         Text("Returning...")
                             .font(.subheadline)
@@ -81,82 +88,29 @@ struct PaymentView: View {
                         .foregroundColor(Color("TextSecondary"))
                 }
                 .padding(.top)
-            }
+                .task {
 
-            Spacer()
-
-            if paymentStatus == "success" {
-                IconButton(systemName: "house.fill") {
+                    try? await Task.sleep(nanoseconds: 2_000_000_000)
                     cart.clearCart()
                     returnToHome = true
                 }
-                .padding(.top, 24)
             }
+
+            Spacer(minLength: 0)
         }
-        .padding()
+        .padding(.horizontal)
+        .onAppear {
+            vm.attachEnvironment(env)
+        }
     }
 
-    private func submitPayment() {
-        isLoading = true
-        paymentStatus = nil
-        message = nil
+    private func format(_ amount: Decimal) -> String {
 
-        let payload = PaymentRequest(
-            order: orderId,
-            iyzicoTransactionId: UUID().uuidString,
-            amount: totalAmount,
-            paymentMethod: selectedMethod,
-            status: "success"
-        )
-
-        guard let url = URL(string: "http://localhost:3000/payments"),
-            let data = try? JSONEncoder().encode(payload)
-        else {
-            print("❌ Failed to encode payment request")
-            return
-        }
-
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.httpBody = data
-
-        URLSession.shared.dataTask(with: request) { data, _, error in
-            DispatchQueue.main.async {
-                self.isLoading = false
-
-                if let error = error {
-                    print("❌ Payment Error:", error.localizedDescription)
-                    self.paymentStatus = "failed"
-                    return
-                }
-
-                guard let data = data else {
-                    self.paymentStatus = "failed"
-                    return
-                }
-
-                do {
-                    let decoded = try JSONDecoder().decode(PaymentResponse.self, from: data)
-                    self.paymentStatus = decoded.payment.status
-                    self.message = decoded.messages.first
-
-                    if decoded.payment.status == "success" {
-                        withAnimation {
-                            redirectProgress = 2.0
-                        }
-
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-                            cart.clearCart()
-                            returnToHome = true
-                        }
-                    }
-                } catch {
-                    print("❌ Payment decode error:", error)
-                    self.paymentStatus = "failed"
-                }
-            }
-        }.resume()
+        let ns = amount as NSDecimalNumber
+        let f = NumberFormatter()
+        f.numberStyle = .currency
+        f.currencyCode = "TRY"
+        f.maximumFractionDigits = 2
+        return f.string(from: ns) ?? "\(amount)"
     }
 }
-
