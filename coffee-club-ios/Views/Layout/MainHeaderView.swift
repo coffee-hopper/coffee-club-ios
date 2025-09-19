@@ -2,8 +2,11 @@ import SwiftUI
 
 struct MainHeaderView: View {
     @EnvironmentObject var auth: AuthViewModel
+
     @Binding var showProfile: Bool
     @Binding var showNotification: Bool
+
+    let notificationService: NotificationServiceProtocol
 
     var body: some View {
 
@@ -32,15 +35,9 @@ struct MainHeaderView: View {
 
             Spacer()
 
-            IconButton(
-                systemName: "bell.fill",
-                action: {
-                    showNotification = true
-                    print("Notifications_tapped")
-                },
-                isFilled: false,
-                iconSize: 28
-            )
+            BellButton(service: notificationService) {
+                showNotification = true
+            }
         }
         .padding(.horizontal, 20)
     }

@@ -48,6 +48,7 @@ final class PaymentViewModel: ObservableObject {
                 withAnimation(.linear(duration: 1.5)) {
                     self.redirectProgress = 2.0
                 }
+                NotificationCenter.default.post(name: .refreshUnreadBadge, object: nil)
             } else {
                 self.paymentStatus = "failed"
             }
@@ -59,7 +60,6 @@ final class PaymentViewModel: ObservableObject {
         }
     }
 
-    
     var ctaTitle: String { isLoading ? "Processing..." : "Pay Now" }
     var isSuccess: Bool { paymentStatus == "success" }
 }

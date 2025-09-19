@@ -17,6 +17,7 @@ struct AppEnvironment {
     let orderService: OrderServiceProtocol
     let paymentService: PaymentServiceProtocol
     let loyaltyService: LoyaltyServiceProtocol
+    let notificationService: NotificationServiceProtocol
 
     let coordinator: ViewCoordinator  // legacy will changed to navigationCoordinator
     let nav: NavigationCoordinator  // new centralized navigation
@@ -40,6 +41,7 @@ extension AppEnvironment {
             orderService: APIOrderService(client: client),
             paymentService: APIPaymentService(client: client),
             loyaltyService: APILoyaltyService(client: client),
+            notificationService: APINotificationService(client: client, tokenProvider: tokenProvider),
             coordinator: coordinator,
             nav: nav,
             tokenProvider: tokenProvider

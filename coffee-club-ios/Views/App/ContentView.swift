@@ -36,7 +36,8 @@ struct ContentView: View {
                 VStack(alignment: .leading, spacing: 0) {
                     MainHeaderView(
                         showProfile: $coordinator.showProfile,
-                        showNotification: $coordinator.showNotification
+                        showNotification: $coordinator.showNotification,
+                        notificationService: environment.notificationService
                     )
                     .frame(height: geo.size.height * 0.075)
 
@@ -85,8 +86,11 @@ struct ContentView: View {
             }
 
             .navigationDestination(isPresented: $coordinator.showNotification) {
-                NotificationView(isActive: $coordinator.showNotification)
-                    .environmentObject(auth)
+                NotificationView(
+                    vm: NotificationsViewModel(service: environment.notificationService),
+                    isActive: $coordinator.showNotification
+                )
+                .environmentObject(auth)
             }
 
             .navigationDestination(isPresented: $coordinator.navigateToPayment) {
