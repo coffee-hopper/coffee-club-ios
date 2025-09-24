@@ -1,6 +1,3 @@
-// TEMP :  For now `nav` has a default value so existing call-sites compile. 'll replace this with the **root-injected** instance in the next step.
-// TODO : 'll be switch NavigationCoordinator fully later
-
 import Foundation
 import SwiftUI
 
@@ -19,8 +16,7 @@ struct AppEnvironment {
     let loyaltyService: LoyaltyServiceProtocol
     let notificationService: NotificationServiceProtocol
 
-    let coordinator: ViewCoordinator  // legacy will changed to navigationCoordinator
-    let nav: NavigationCoordinator  // new centralized navigation
+    let nav: NavigationCoordinator
 
     let tokenProvider: TokenProviding?
 }
@@ -29,7 +25,6 @@ extension AppEnvironment {
     @MainActor
     static func makeDefault(
         apiBaseURL: URL,
-        coordinator: ViewCoordinator,
         nav: NavigationCoordinator,
         tokenProvider: TokenProviding? = nil
     ) -> AppEnvironment {
@@ -41,8 +36,10 @@ extension AppEnvironment {
             orderService: APIOrderService(client: client),
             paymentService: APIPaymentService(client: client),
             loyaltyService: APILoyaltyService(client: client),
-            notificationService: APINotificationService(client: client, tokenProvider: tokenProvider),
-            coordinator: coordinator,
+            notificationService: APINotificationService(
+                client: client,
+                tokenProvider: tokenProvider
+            ),
             nav: nav,
             tokenProvider: tokenProvider
         )
@@ -53,8 +50,8 @@ extension AppEnvironment {
         let nav = NavigationCoordinator()
         return .makeDefault(
             apiBaseURL: URL(string: "http://localhost:3000")!,
-            coordinator: ViewCoordinator(),
-            nav: nav
+            nav: nav,
+            tokenProvider: nil
         )
     }
 }

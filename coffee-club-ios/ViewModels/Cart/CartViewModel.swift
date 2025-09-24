@@ -1,4 +1,3 @@
-//TODO: temporary pass-through (Step 7 will move this into payment/order orchestration)
 import Combine
 import Foundation
 

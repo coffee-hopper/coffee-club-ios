@@ -1,5 +1,3 @@
-// TODO: adjust loyaltyStatus's String: "/loyalty/status/\(userId)" if different
-
 enum APIEndpoints {
     static let products = "/products"
     static func product(_ id: Int) -> String { "/products/\(id)" }

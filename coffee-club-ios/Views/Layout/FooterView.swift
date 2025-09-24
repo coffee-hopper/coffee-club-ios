@@ -1,7 +1,8 @@
 import SwiftUI
 
 struct FooterView: View {
-    @EnvironmentObject var coordinator: ViewCoordinator
+    @EnvironmentObject var nav: NavigationCoordinator
+    
     @Binding var isPresentingScanner: Bool
     @Binding var navigateToPayment: Bool
     @Binding var createdOrderId: Int?
@@ -34,7 +35,7 @@ struct FooterView: View {
             Spacer()
 
             IconButton(systemName: "cart.fill") {
-                coordinator.showCart = true
+                nav.openCart()
             }
 
             Spacer()

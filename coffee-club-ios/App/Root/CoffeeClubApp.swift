@@ -20,7 +20,6 @@ struct CoffeeClubApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
 
     @StateObject private var nav: NavigationCoordinator
-    @StateObject private var legacyCoordinator: ViewCoordinator
 
     @StateObject private var auth: AuthViewModel
 
@@ -32,20 +31,16 @@ struct CoffeeClubApp: App {
         configureGoogle()
 
         let nav = NavigationCoordinator()
-        let legacy = ViewCoordinator()
         let env = AppEnvironment.makeDefault(
             apiBaseURL: URL(string: "http://localhost:3000")!,
-            coordinator: legacy,
             nav: nav
         )
 
         _nav = StateObject(wrappedValue: nav)
-        _legacyCoordinator = StateObject(wrappedValue: legacy)
         _auth = StateObject(
             wrappedValue: AuthViewModel(
                 authService: env.authService,
                 nav: env.nav,
-                legacy: legacy
             )
         )
 
@@ -64,7 +59,6 @@ struct CoffeeClubApp: App {
             .environment(\.appEnvironment, environment)
             .environmentObject(auth)
             .environmentObject(nav)
-            .environmentObject(legacyCoordinator)
             .preferredColorScheme(appTheme.colorScheme)
         }
     }

@@ -13,20 +13,23 @@ final class ProductListViewModel: ObservableObject {
     var initialCategory: String = ""
 
     private var productService: ProductServiceProtocol?
-    private weak var coordinator: ViewCoordinator?
+    private weak var nav: NavigationCoordinator?
+    private weak var selection: ProductSelection?
     private var tokenProvider: () -> String?
 
     init() { self.tokenProvider = { nil } }
 
     func configure(
         productService: ProductServiceProtocol,
-        coordinator: ViewCoordinator,
+        nav: NavigationCoordinator,
+        selection: ProductSelection,
         tokenProvider: @escaping () -> String?,
         initialCategory: String
     ) {
         guard self.productService == nil else { return }
         self.productService = productService
-        self.coordinator = coordinator
+        self.nav = nav
+        self.selection = selection
         self.tokenProvider = tokenProvider
         self.initialCategory = initialCategory
     }
@@ -56,7 +59,14 @@ final class ProductListViewModel: ObservableObject {
     }
 
     func onProductTapped(_ p: Product) {
-        coordinator?.selectedProduct = p
-        coordinator?.showProductDetail = true
+        selection?.set(
+            .init(
+                id: p.id,
+                name: p.name,
+                price: Decimal(p.price),
+                imageName: p.processedImageName
+            )
+        )
+        nav?.openProduct(p.id)
     }
 }

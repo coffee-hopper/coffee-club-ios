@@ -33,7 +33,8 @@ final class ProductViewModel: ObservableObject {
     }
 
     private var productService: ProductServiceProtocol?
-    private weak var coordinator: ViewCoordinator?
+    private weak var nav: NavigationCoordinator?
+    private weak var selection: ProductSelection?
     private var tokenProvider: () -> String?
 
     init() {
@@ -42,12 +43,14 @@ final class ProductViewModel: ObservableObject {
 
     func configure(
         productService: ProductServiceProtocol,
-        coordinator: ViewCoordinator,
+        nav: NavigationCoordinator,
+        selection: ProductSelection,
         tokenProvider: @escaping () -> String?
     ) {
         guard self.productService == nil else { return }
         self.productService = productService
-        self.coordinator = coordinator
+        self.nav = nav
+        self.selection = selection
         self.tokenProvider = tokenProvider
     }
 
@@ -74,11 +77,18 @@ final class ProductViewModel: ObservableObject {
     }
 
     func onProductTapped(_ product: Product) {
-        coordinator?.selectedProduct = product
-        coordinator?.showProductDetail = true
+        selection?.set(
+            ProductSummary(
+                id: product.id,
+                name: product.name,
+                price: Decimal(product.price),
+                imageName: product.processedImageName
+            )
+        )
+        nav?.openProduct(product.id)
     }
 
     func openSeeAll() {
-        coordinator?.showProductList = true
+        nav?.openProductList(category: selectedCategory)
     }
 }

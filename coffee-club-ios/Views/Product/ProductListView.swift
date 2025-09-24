@@ -2,7 +2,8 @@ import SwiftUI
 
 struct ProductListView: View {
     @EnvironmentObject var auth: AuthViewModel
-    @EnvironmentObject var coordinator: ViewCoordinator
+    @EnvironmentObject var nav: NavigationCoordinator
+    @EnvironmentObject var selection: ProductSelection
     @Environment(\.appEnvironment) private var environment
 
     @Binding var isActive: Bool
@@ -63,7 +64,8 @@ struct ProductListView: View {
         .onAppear {
             vm.configure(
                 productService: environment.productService,
-                coordinator: coordinator,
+                nav: nav,
+                selection: selection,
                 tokenProvider: { auth.token },
                 initialCategory: category
             )
@@ -84,8 +86,7 @@ struct ProductListView: View {
                 Spacer()
                 IconButton(
                     systemName: "cart",
-                    action: {
-                    },
+                    action: { nav.openCart() },  
                     isFilled: false,
                     iconSize: 30
                 )

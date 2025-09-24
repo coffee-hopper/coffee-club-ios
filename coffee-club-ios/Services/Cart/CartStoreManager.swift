@@ -1,5 +1,3 @@
-//TODO: move payload building to OrderService when we wire payment flow
-
 import Foundation
 
 final class CartStoreManager: CartStore, ObservableObject {

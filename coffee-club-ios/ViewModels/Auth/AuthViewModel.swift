@@ -14,15 +14,14 @@ final class AuthViewModel: ObservableObject, TokenProviding {
     private let keychain = Keychain(service: "com.yourcompany.coffeeclub")
     private let authService: AuthServiceProtocol
     private let nav: NavigationCoordinator
-    private let legacy: ViewCoordinator
+    
 
     var isMobileUser: Bool { user?.role == "user" }
     var isOwner: Bool { user?.role == "owner" }
 
-    init(authService: AuthServiceProtocol, nav: NavigationCoordinator, legacy: ViewCoordinator) {
+    init(authService: AuthServiceProtocol, nav: NavigationCoordinator) {
         self.authService = authService
         self.nav = nav
-        self.legacy = legacy
         restoreSession()
     }
 

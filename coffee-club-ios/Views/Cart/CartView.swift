@@ -1,5 +1,3 @@
-//TODO: createOrderFromCart Step 7 will move this to Payment orchestration
-
 import SwiftUI
 
 struct CartView: View {

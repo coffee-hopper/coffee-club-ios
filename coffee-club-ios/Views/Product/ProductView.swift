@@ -10,7 +10,8 @@ struct ProductView: View {
     let heightUnit: CGFloat
 
     @EnvironmentObject var auth: AuthViewModel
-    @EnvironmentObject var coordinator: ViewCoordinator
+    @EnvironmentObject var nav: NavigationCoordinator
+    @EnvironmentObject var selection: ProductSelection
     @Environment(\.appEnvironment) private var environment
 
     @StateObject private var vm = ProductViewModel()
@@ -156,7 +157,8 @@ struct ProductView: View {
         .onAppear {
             vm.configure(
                 productService: environment.productService,
-                coordinator: coordinator,
+                nav: nav,
+                selection: selection,
                 tokenProvider: { auth.token }
             )
             vm.searchText = searchText
