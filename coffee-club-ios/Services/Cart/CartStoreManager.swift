@@ -52,7 +52,6 @@ final class CartStoreManager: CartStore, ObservableObject {
             )
         }
         let total = orderItems.reduce(Decimal.zero) { $0 + $1.price * Decimal($1.quantity) }
-        // TODO (later): move payload building to OrderService when we wire payment flow
         return OrderRequest(user: userId, items: orderItems, totalAmount: total, status: "success")
     }
 

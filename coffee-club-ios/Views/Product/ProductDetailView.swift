@@ -1,3 +1,6 @@
+//TODO: Look for the styling keeped the same with earlier ?,
+//TODO: Look for the "loadLatest" func >> should be live in here or its own viewmodel ? (it doesnt had one)
+
 //import SwiftUI
 //
 //struct ProductDetailView: View {
@@ -69,9 +72,6 @@
 
 import SwiftUI
 
-/// Single-component Product Detail with snapshot→refresh.
-/// Pass *only* productID; it uses ProductSelection for instant data
-/// and fetches the full Product via ProductService (with token).
 struct ProductDetailView: View {
     let productID: Int
 
@@ -195,11 +195,17 @@ struct ProductDetailView: View {
         errorText = nil
         do {
             let token = env.tokenProvider?.token
+            print("[Detail] GET product id=\(productID), tokenPresent=\(token != nil)")
             let fetched = try await env.productService.fetchProduct(id: productID, token: token)
             self.product = fetched
+        } catch let AppError.http(status: code, message: msg) {
+            print("[Detail] HTTP error \(code) \(msg ?? "")")
+            self.errorText = msg ?? "HTTP \(code)"
         } catch {
+            print("[Detail] Decode/Other error:", error)
             self.errorText = error.localizedDescription
         }
         isLoading = false
     }
+
 }

@@ -1,10 +1,10 @@
-//TODO: currently Search bar isint activating probably isSearchFocussed state not triggering.
-
 import SwiftUI
 
 struct ProductView: View {
+    @Binding var isSearchFocused: Bool
     @Binding var searchText: String
     @Binding var category: String
+    @Binding var searchTapShield: Bool
 
     let title: String
     let heightUnit: CGFloat
@@ -16,22 +16,10 @@ struct ProductView: View {
 
     @StateObject private var vm = ProductViewModel()
     @State private var activeProductId: Int? = nil
-    @FocusState private var isSearchFocused: Bool
+    @FocusState private var tfFocused: Bool
 
     var body: some View {
         ZStack {
-            if searchText.isEmpty {
-                Color.clear
-                    .contentShape(Rectangle())
-                    .onTapGesture {
-                        withAnimation {
-                            searchText = ""
-                            isSearchFocused = false
-                        }
-                    }
-                    .ignoresSafeArea()
-            }
-
             VStack(spacing: 0) {
 
                 // MARK: Header
@@ -56,13 +44,9 @@ struct ProductView: View {
                 // MARK: Categories
                 HStack {
                     categoryButton("Coffee", icon: "cup.and.heat.waves.fill", tag: "coffee")
-
                     Spacer()
-
                     categoryButton("Food", icon: "fork.knife", tag: "food")
-
                     Spacer()
-
                     categoryButton("Tea", icon: "mug", tag: "tea")
                 }
                 .padding(.horizontal, 12)
@@ -70,61 +54,75 @@ struct ProductView: View {
 
                 // MARK: SearchBar
                 HStack {
-                    ZStack {
-                        // MARK: Invisible tap area to trigger search
-                        Color.clear
-                            .frame(height: 75)
-                            .contentShape(Rectangle())
-                            .onTapGesture {
-                                withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
-                                    isSearchFocused = true
-                                }
-                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                                    isSearchFocused = true
-                                }
-                            }
+                    let isActive = tfFocused || !searchText.isEmpty
 
-                        HStack {
-                            if isSearchFocused || !searchText.isEmpty {
-                                TextField("Search...", text: $searchText)
-                                    .padding(.horizontal, 10)
-                                    .frame(height: 40)
-                                    .background(
-                                        RoundedRectangle(cornerRadius: 10)
-                                            .strokeBorder(Color("TextSecondary"), lineWidth: 1)
-                                    )
-                                    .textInputAutocapitalization(.never)
-                                    .disableAutocorrection(true)
-                                    .focused($isSearchFocused)
-                                    .transition(.opacity)
-                            } else {
-                                Color("TextSecondary").frame(height: 1)
-                            }
+                    HStack(spacing: 8) {
+                        Rectangle()
+                            .fill(Color("TextSecondary"))
+                            .frame(height: 1)
+                            .frame(maxWidth: isActive ? 0 : .infinity, alignment: .leading)
+                            .opacity(isActive ? 0 : 1)
+                            .animation(.easeInOut(duration: 0.2), value: isActive)
 
-                            IconButton(
-                                systemName: "magnifyingglass",
-                                action: {
-                                    withAnimation(.spring(response: 0.8, dampingFraction: 0.8)) {
-                                        // if there is text, treat tap as "clear"; otherwise focus and open the field
-                                        if !searchText.isEmpty {
-                                            searchText = ""
-                                            isSearchFocused = false
-                                        } else {
-                                            isSearchFocused = true
-                                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                                                isSearchFocused = true
-                                            }
-                                        }
+                        TextField("Search...", text: $searchText)
+                            .padding(.leading, 10)
+                            .padding(.trailing, 10) 
+                            .frame(height: 40)
+                            .background(
+                                RoundedRectangle(cornerRadius: 10)
+                                    .strokeBorder(Color("TextSecondary"), lineWidth: 1)
+                            )
+                            .textInputAutocapitalization(.never)
+                            .disableAutocorrection(true)
+                            .focused($tfFocused)
+                            .frame(maxWidth: isActive ? .infinity : 0, alignment: .leading)
+                            .opacity(isActive ? 1 : 0)
+                            .clipped()
+                            .animation(.easeInOut(duration: 0.2), value: isActive)
+
+                        IconButton(
+                            systemName: (tfFocused || !searchText.isEmpty)
+                                ? "xmark" : "magnifyingglass",
+                            action: {
+                                searchTapShield = true
+                                withAnimation(.spring(response: 0.8, dampingFraction: 0.85)) {
+                                    if tfFocused || !searchText.isEmpty {
+                                        searchText = ""
+                                        tfFocused = false
+                                        isSearchFocused = false
+                                    } else {
+                                        isSearchFocused = true
+                                        tfFocused = true
+                                        DispatchQueue.main.async { tfFocused = true }
                                     }
                                 }
-                            )
+                            },
+                            isFilled: true,
+                            bgFill: (tfFocused || !searchText.isEmpty)
+                                ? Color("AccentRed")
+                                : Color("GreenEnergic").opacity(0.6)
+                        )
+                    }
+                    .frame(height: 70)
+                    .padding(.horizontal, 12)
+                    .contentShape(Rectangle())
+                    /// Tell parent the tap originated inside search UI (so it doesn't auto-dismiss)
+                    .simultaneousGesture(
+                        DragGesture(minimumDistance: 0).onChanged { _ in
+                            if !searchTapShield { searchTapShield = true }
                         }
-                        .frame(height: 70)
-                        .padding(.horizontal, 12)
+                    )
+                    .onTapGesture {
+                        withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
+                            isSearchFocused = true
+                            tfFocused = true
+                        }
+                        DispatchQueue.main.async { tfFocused = true }
                     }
                 }
                 .frame(height: heightUnit * 0.15)
 
+                // MARK: Horizontal products
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 12) {
                         ForEach(vm.filteredProducts) { product in
@@ -140,7 +138,7 @@ struct ProductView: View {
                 .frame(height: heightUnit * 0.55)
             }
 
-            //MARK: State (simple surface; no style change)
+            // MARK: State surface
             switch vm.state {
             case .loading:
                 ProgressView().padding(.top, 8)
@@ -163,23 +161,29 @@ struct ProductView: View {
             )
             vm.searchText = searchText
             vm.selectedCategory = category
+            tfFocused = isSearchFocused
             vm.load()
         }
         .onChange(of: searchText) { _, newValue in
             vm.searchText = newValue
+            vm.filtersDidChange()
         }
         .onChange(of: category) { _, newValue in
             vm.selectedCategory = newValue
+            vm.filtersDidChange()
+        }
+        /// two-way sync parent with TextField focus
+        .onChange(of: isSearchFocused) { _, new in
+            if new != tfFocused { tfFocused = new }
+        }
+        .onChange(of: tfFocused) { _, new in
+            if new != isSearchFocused { isSearchFocused = new }
         }
     }
 
     private func categoryButton(_ label: String, icon: String, tag: String) -> some View {
         VStack(spacing: 6) {
-            IconButton(
-                systemName: icon,
-                action: { category = tag }
-            )
-
+            IconButton(systemName: icon) { category = tag }
             Text(label)
                 .foregroundColor(
                     category == tag

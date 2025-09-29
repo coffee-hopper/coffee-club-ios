@@ -1,3 +1,5 @@
+//TODO: look for the func that has relatie time etc >> goes to the common funcs ? 
+
 import SwiftUI
 
 struct NotificationView: View {

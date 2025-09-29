@@ -1,3 +1,5 @@
+//TODO: Look for payment flow on View, CreateOrderFromCart ..
+
 import SwiftUI
 
 struct CartView: View {
@@ -92,7 +94,7 @@ struct CartView: View {
         .navigationBarBackButtonHidden(false)
     }
 
-    // TEMP: Step 7 will move this to Payment orchestration
+    // TODO: Look>> Step 7 will move this to Payment orchestration
     private func createOrderFromCart() {
         guard
             let userId = auth.user?.id,

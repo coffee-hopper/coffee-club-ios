@@ -1,5 +1,4 @@
-// TODO(MVVM): Move fetchLoyaltyData() into LoyaltyService + LoyaltyViewModel.
-// View should only bind to VM state.
+// TODO: Move fetchLoyaltyData() into LoyaltyService + LoyaltyViewModel.
 
 import SwiftUI
 

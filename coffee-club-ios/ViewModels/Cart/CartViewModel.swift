@@ -57,7 +57,7 @@ final class CartViewModel: ObservableObject {
         store.quantity(for: productId)
     }
 
-    // temporary pass-through (Step 7 will move this into payment/order orchestration)
+    // TODO: temporary pass-through (Step 7 will move this into payment/order orchestration)
     func makeOrderRequest(userId: Int) -> OrderRequest? {
         store.createOrderPayload(userId: userId)
     }

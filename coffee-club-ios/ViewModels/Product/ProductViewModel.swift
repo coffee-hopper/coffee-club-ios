@@ -1,3 +1,5 @@
+// TODO: look for the none asycn op occurs while filtersDidChange func
+
 import Foundation
 
 @MainActor
@@ -11,35 +13,20 @@ final class ProductViewModel: ObservableObject {
     @Published var selectedCategory: String = ""
 
     @Published private(set) var state: State = .idle
-    @Published private(set) var allProducts: [Product] = []
+    @Published private(set) var products: [Product] = []
 
-    var filteredProducts: [Product] {
-        var items = allProducts
-
-        let q = searchText.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
-        if !q.isEmpty {
-            items = items.filter {
-                $0.name.lowercased().contains(q) || $0.category.lowercased().contains(q)
-                    || ($0.description ?? "").lowercased().contains(q)
-            }
-        }
-
-        let cat = selectedCategory.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
-        if !cat.isEmpty {
-            items = items.filter { $0.category.lowercased() == cat }
-        }
-
-        return items.sorted { $0.id < $1.id }
-    }
+    var filteredProducts: [Product] { products }
 
     private var productService: ProductServiceProtocol?
     private weak var nav: NavigationCoordinator?
     private weak var selection: ProductSelection?
     private var tokenProvider: () -> String?
 
-    init() {
-        self.tokenProvider = { nil }
-    }
+    private var debounceTask: Task<Void, Never>?
+    private var fetchTask: Task<Void, Never>?
+    private var lastQueryKey: String?
+
+    init() { self.tokenProvider = { nil } }
 
     func configure(
         productService: ProductServiceProtocol,
@@ -55,25 +42,78 @@ final class ProductViewModel: ObservableObject {
     }
 
     func load() {
-        guard let productService else { return }
         guard case .idle = state else { return }
-
         state = .loading
-        Task {
+        fetch(force: true)
+    }
+
+    func refresh() {
+        state = .loading
+        fetch(force: true)
+    }
+
+    /// when `searchText` or `selectedCategory` changes from the View.
+    func filtersDidChange() {
+        debounceTask?.cancel()
+        debounceTask = Task { [weak self] in
+            // 300ms debounce to avoid spamming requests while typing
+            try? await Task.sleep(nanoseconds: 300_000_000)
+            await self?.fetch()
+        }
+    }
+
+    private func currentOptions() -> ProductQueryOptions {
+        let q = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
+        let rawCat =
+            selectedCategory
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .lowercased()
+
+        return ProductQueryOptions(
+            q: q.isEmpty ? nil : q,
+            category: rawCat.isEmpty ? nil : rawCat,
+            inStock: nil,
+            offset: 0,
+            limit: 50,
+            sort: "name",
+            order: "asc"
+        )
+    }
+
+    private func queryKey(for opts: ProductQueryOptions) -> String {
+        [
+            opts.q ?? "",
+            opts.category ?? "",
+            opts.inStock == nil ? "" : (opts.inStock! ? "in" : "out"),
+            String(opts.offset),
+            String(opts.limit),
+            opts.sort,
+            opts.order,
+        ].joined(separator: "|")
+    }
+
+    private func fetch(force: Bool = false) {
+        guard let productService else { return }
+
+        let opts = currentOptions()
+        let key = queryKey(for: opts)
+        if !force, key == lastQueryKey, state == .loaded { return }
+
+        lastQueryKey = key
+
+        fetchTask?.cancel()
+        fetchTask = Task { [weak self] in
+            guard let self else { return }
             do {
-                let token = tokenProvider()
-                let products = try await productService.fetchProducts(token: token)
-                self.allProducts = products.sorted { $0.id < $1.id }
+                let token = self.tokenProvider()
+                let items = try await productService.fetchProducts(token: token, options: opts)
+                self.products = items
                 self.state = .loaded
+            } catch is CancellationError {
             } catch {
                 self.state = .error(message: ErrorMapper.message(for: error))
             }
         }
-    }
-
-    func refresh() {
-        state = .idle
-        load()
     }
 
     func onProductTapped(_ product: Product) {

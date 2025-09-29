@@ -36,8 +36,6 @@ final class PaymentViewModel: ObservableObject {
         isLoading = true
         defer { isLoading = false }
 
-        // NOTE: We only have builder for cash in APIPaymentService today.
-        // Until iyzico path lands, we still use `.cash` (server accepts status: "success").
         let request = PaymentRequest.cash(orderId: orderId, amount: totalAmount)
         do {
             let resp = try await paymentService.createPayment(request, token: tokenProvider?.token)

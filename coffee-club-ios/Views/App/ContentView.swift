@@ -1,145 +1,6 @@
-////TODO: look AppEnvironment ok for now part- remove later ?
-////TODO: After Each payment transaction product list must be refetch so quantities updated.
-//
-//import SwiftUI
-//
-//struct ContentView: View {
-//    var auth: AuthViewModel
-//
-//    // Legacy is still injected at app root, but we don't rely on it for navigation anymore
-//    @EnvironmentObject var coordinator: ViewCoordinator
-//
-//    @EnvironmentObject var nav: NavigationCoordinator
-//
-//    @StateObject private var cart = CartStoreManager()
-//
-//    @State private var selectedCategory = "coffee"
-//    @State private var searchText: String = ""
-//
-//    @State private var isPresentingScanner = false
-//    @State private var navigateToPayment = false
-//
-//    @State private var createdOrderId: Int?
-//    @State private var createdOrderAmount: Decimal?
-//
-//    // LOOK : Simple computed env
-//    private var environment: AppEnvironment {
-//        AppEnvironment.makeDefault(
-//            apiBaseURL: URL(string: API.baseURL)!,
-//            coordinator: coordinator,
-//            nav: nav,
-//            tokenProvider: auth
-//        )
-//    }
-//
-//    var body: some View {
-//        NavigationStack {
-//            GeometryReader { geo in
-//                VStack(alignment: .leading, spacing: 0) {
-//                    MainHeaderView(
-//                        showProfile: $coordinator.showProfile,
-//                        showNotification: $coordinator.showNotification,
-//                        notificationService: environment.notificationService
-//                    )
-//                    .frame(height: geo.size.height * 0.075)
-//
-//                    RewardView()
-//                        .frame(height: geo.size.height * 0.25)
-//
-//                    ProductView(
-//                        searchText: $searchText,
-//                        category: $selectedCategory,
-//                        title: selectedCategory,
-//                        heightUnit: geo.size.height * 0.60,
-//                    )
-//                    .environmentObject(cart)
-//                    .environmentObject(auth)
-//                    .frame(height: geo.size.height * 0.60)
-//
-//                    FooterView(
-//                        isPresentingScanner: $isPresentingScanner,
-//                        navigateToPayment: .init(
-//                            get: { coordinator.navigateToPayment },
-//                            set: { coordinator.navigateToPayment = $0 }
-//                        ),
-//                        createdOrderId: $createdOrderId,
-//                        createdOrderAmount: $createdOrderAmount,
-//                        productService: environment.productService,
-//                        orderService: environment.orderService,
-//                        tokenProvider: environment.tokenProvider
-//                    )
-//                    .environmentObject(coordinator)
-//                    .frame(height: geo.size.height * 0.075)
-//                }
-//                .frame(width: geo.size.width, height: geo.size.height)
-//            }
-//
-//            .navigationDestination(isPresented: $coordinator.showProductList) {
-//                ProductListView(
-//                    isActive: $coordinator.showProductList,
-//                    category: selectedCategory
-//                )
-//                .environmentObject(auth)
-//            }
-//
-//            .navigationDestination(isPresented: $coordinator.showProfile) {
-//                ProfileView(isActive: $coordinator.showProfile)
-//                    .environmentObject(auth)
-//            }
-//
-//            .navigationDestination(isPresented: $coordinator.showNotification) {
-//                NotificationView(
-//                    vm: NotificationsViewModel(service: environment.notificationService),
-//                    isActive: $coordinator.showNotification
-//                )
-//                .environmentObject(auth)
-//            }
-//
-//            .navigationDestination(isPresented: $coordinator.navigateToPayment) {
-//                if let id = createdOrderId, let amount = createdOrderAmount {
-//                    PaymentView(
-//                        orderId: id,
-//                        totalAmount: amount,
-//                        returnToHome: $coordinator.returnToHome
-//                    )
-//                    .environmentObject(cart)
-//                } else {
-//                    EmptyView()
-//                }
-//            }
-//
-//            .navigationDestination(isPresented: $coordinator.showCart) {
-//                CartView(
-//                    returnToHome: $coordinator.returnToHome,
-//                    navigateToPayment: $coordinator.navigateToPayment,
-//                    showCartView: $coordinator.showCart,
-//                    createdOrderId: $createdOrderId,
-//                    createdOrderAmount: $createdOrderAmount,
-//                    orderService: environment.orderService,
-//                    tokenProvider: environment.tokenProvider,
-//                    store: cart,
-//                    productService: environment.productService
-//                )
-//                .environmentObject(auth)
-//            }
-//
-//            .navigationDestination(isPresented: $coordinator.showProductDetail) {
-//                if let product = coordinator.selectedProduct {
-//                    ProductDetailView(product: product)
-//                        .environmentObject(cart)
-//                } else {
-//                    EmptyView()
-//                }
-//            }
-//        }
-//        .environmentObject(cart)
-//        .environment(\.appEnvironment, environment)
-//
-//        .onChange(of: coordinator.returnToHome) {
-//            coordinator.resetAll()
-//        }
-//    }
-//}
+//TODO: look AppEnvironment ok for now part- remove later ?
+//TODO: After Each payment transaction product list must be refetch so quantities updated.
+//TODO: Look for the part of Optional: after returning home, trigger product refresh (post-payment)
 
 import SwiftUI
 
@@ -152,6 +13,8 @@ struct ContentView: View {
     @StateObject private var cart = CartStoreManager()
     @StateObject private var selection = ProductSelection()
 
+    @State private var isSearchFocused: Bool = false
+    @State private var searchTapShield: Bool = false
     @State private var selectedCategory: String = "coffee"
     @State private var searchText: String = ""
 
@@ -176,7 +39,6 @@ struct ContentView: View {
     }
 
     // MARK: Local bindings to adapt existing screens to routes
-
     private var returnToHomeBinding: Binding<Bool> {
         Binding(
             get: { false },
@@ -237,16 +99,18 @@ struct ContentView: View {
                     RewardView()
                         .frame(height: geo.size.height * 0.25)
 
-                    // PRODUCTS (inject selection so taps can snapshot+route)
+                    // PRODUCTS
                     ProductView(
+                        isSearchFocused: $isSearchFocused,
                         searchText: $searchText,
                         category: $selectedCategory,
+                        searchTapShield: $searchTapShield,
                         title: selectedCategory,
                         heightUnit: geo.size.height * 0.60
                     )
                     .environmentObject(cart)
                     .environmentObject(auth)
-                    .environmentObject(selection)  // <— important: snapshot service
+                    .environmentObject(selection)
                     .frame(height: geo.size.height * 0.60)
 
                     // FOOTER
@@ -262,9 +126,32 @@ struct ContentView: View {
                     .frame(height: geo.size.height * 0.075)
                 }
                 .frame(width: geo.size.width, height: geo.size.height)
+                ///SearchBar close Trigger overlay
+                .overlay {
+                    if isSearchFocused {
+                        Color.black
+                            .opacity(0.085)
+                            .ignoresSafeArea()
+                            .allowsHitTesting(false)
+                            .transition(.opacity)
+                            .zIndex(9999)
+                    }
+                }
+                .simultaneousGesture(
+                    TapGesture().onEnded {
+                        defer { searchTapShield = false }
+                        if searchTapShield { return }
+                        if isSearchFocused {
+                            withAnimation(.easeInOut(duration: 0.25)) {
+                                isSearchFocused = false
+                            }
+                        }
+                    }
+                )
+
             }
 
-            // ===== DESTINATIONS (purely from nav.route) =====
+            // MARK: ===== DESTINATIONS =====
 
             // Product List
             .navigationDestination(isPresented: showProductListBinding) {
@@ -312,7 +199,7 @@ struct ContentView: View {
                 .environmentObject(auth)
             }
 
-            // Product Detail (snapshot → instant UI, then refresh)
+            // Product Detail
             .navigationDestination(
                 isPresented: Binding(
                     get: {
@@ -325,7 +212,7 @@ struct ContentView: View {
             ) {
                 if case let .productDetail(id) = nav.route {
                     ProductDetailView(productID: id)
-                        .environmentObject(selection) 
+                        .environmentObject(selection)
                         .environmentObject(cart)
                 } else {
                     EmptyView()
@@ -370,7 +257,7 @@ struct ContentView: View {
             }
         }
 
-        // Optional: after returning home, trigger product refresh (post-payment)
+        //TODO: after returning home, trigger product refresh (post-payment)
         .onChange(of: nav.route) { _, newRoute in
             if case .home = newRoute {
                 // Task { await productsVM.refetch() }

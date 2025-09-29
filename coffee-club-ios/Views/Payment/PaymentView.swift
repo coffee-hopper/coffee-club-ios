@@ -1,3 +1,5 @@
+//TODO: look for the func that formatting >> Goes to the common funcs ? 
+
 import SwiftUI
 
 struct PaymentView: View {
