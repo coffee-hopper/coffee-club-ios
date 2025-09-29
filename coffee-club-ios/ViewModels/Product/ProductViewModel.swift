@@ -1,5 +1,3 @@
-// TODO: look for the none asycn op occurs while filtersDidChange func
-
 import Foundation
 
 @MainActor
@@ -52,13 +50,12 @@ final class ProductViewModel: ObservableObject {
         fetch(force: true)
     }
 
-    /// when `searchText` or `selectedCategory` changes from the View.
     func filtersDidChange() {
         debounceTask?.cancel()
-        debounceTask = Task { [weak self] in
-            // 300ms debounce to avoid spamming requests while typing
+        debounceTask = Task { @MainActor [weak self] in
             try? await Task.sleep(nanoseconds: 300_000_000)
-            await self?.fetch()
+            guard let self, !Task.isCancelled else { return }
+            self.fetch()
         }
     }
 
@@ -107,11 +104,18 @@ final class ProductViewModel: ObservableObject {
             do {
                 let token = self.tokenProvider()
                 let items = try await productService.fetchProducts(token: token, options: opts)
-                self.products = items
-                self.state = .loaded
+
+                await MainActor.run {
+                    self.products = items
+                    self.state = .loaded
+                }
             } catch is CancellationError {
+                /// ignore
             } catch {
-                self.state = .error(message: ErrorMapper.message(for: error))
+                await MainActor.run {
+                    self.state = .error(message: ErrorMapper.message(for: error))
+                }
+
             }
         }
     }
