@@ -1,5 +1,3 @@
-//TODO: look for the func that formatting >> Goes to the common funcs ? 
-
 import SwiftUI
 
 struct PaymentView: View {
@@ -29,7 +27,7 @@ struct PaymentView: View {
                 .padding(.top, 8)
                 .foregroundColor(.primary)
 
-            Text("Toplam: \(format(totalAmount))")
+            Text("Toplam: \(PriceFormatting.string(from: totalAmount))")
                 .font(.headline)
                 .foregroundColor(.primary)
 
@@ -104,15 +102,5 @@ struct PaymentView: View {
         .onAppear {
             vm.attachEnvironment(env)
         }
-    }
-
-    private func format(_ amount: Decimal) -> String {
-
-        let ns = amount as NSDecimalNumber
-        let f = NumberFormatter()
-        f.numberStyle = .currency
-        f.currencyCode = "TRY"
-        f.maximumFractionDigits = 2
-        return f.string(from: ns) ?? "\(amount)"
     }
 }

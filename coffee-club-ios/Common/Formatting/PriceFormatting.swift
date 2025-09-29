@@ -14,4 +14,8 @@ enum PriceFormatting {
     static func string(from decimal: Decimal) -> String {
         tryFormatter.string(from: NSDecimalNumber(decimal: decimal)) ?? "₺0,00"
     }
+    
+    static func string(from double: Double) -> String {
+        string(from: Decimal(double))
+    }
 }

@@ -56,4 +56,12 @@ public enum DateFormatting {
         df.dateFormat = format
         return df.string(from: date)
     }
+    
+    public static func absolute(_ date: Date) -> String {
+        absoluteFormatter.string(from: date)
+    }
+
+    public static func relative(_ date: Date, relativeTo ref: Date = Date()) -> String {
+        relativeFormatter.localizedString(for: date, relativeTo: ref)
+    }
 }

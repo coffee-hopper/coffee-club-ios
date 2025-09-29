@@ -1,5 +1,3 @@
-//TODO: look for the func that has relatie time etc >> goes to the common funcs ? 
-
 import SwiftUI
 
 struct NotificationView: View {
@@ -67,12 +65,4 @@ struct NotificationView: View {
         .task { await vm.refresh() }
     }
 
-    private func relativeTime(_ iso: String) -> String {
-        if let date = ISO8601DateFormatter().date(from: iso) {
-            let r = RelativeDateTimeFormatter()
-            r.unitsStyle = .short
-            return r.localizedString(for: date, relativeTo: Date())
-        }
-        return iso
-    }
 }
