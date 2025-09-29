@@ -86,7 +86,7 @@ struct ProductListView: View {
                 Spacer()
                 IconButton(
                     systemName: "cart",
-                    action: { nav.openCart() },  
+                    action: { nav.openCart() },
                     isFilled: false,
                     iconSize: 30
                 )
@@ -104,11 +104,12 @@ struct ProductListView: View {
                             Text("\(product.price)₺")
                                 .font(.title)
 
-                            Text("Go to product details")
-                                .foregroundColor(Color("TextPrimary"))
-                                .onTapGesture {
+                            IconButton(
+                                systemName: "info",
+                                action: {
                                     vm.onProductTapped(product)
-                                }
+                                },
+                            )
                         }
                         .frame(width: width)
                     }
