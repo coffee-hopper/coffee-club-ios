@@ -57,9 +57,16 @@ final class CartViewModel: ObservableObject {
         store.quantity(for: productId)
     }
 
-    // TODO: temporary pass-through (Step 7 will move this into payment/order orchestration)
-    func makeOrderRequest(userId: Int) -> OrderRequest? {
-        store.createOrderPayload(userId: userId)
+    func createOrder(
+        userId: Int,
+        orderService: OrderServiceProtocol,
+        tokenProvider: TokenProviding?
+    ) async throws -> OrderResponse {
+        try await orderService.createOrderFromCart(
+            userId: userId,
+            cart: store,
+            token: tokenProvider?.token
+        )
     }
 
     private func sync() {

@@ -1,10 +1,8 @@
-//TODO: Look for payment flow on View, CreateOrderFromCart ..
-
 import SwiftUI
 
 struct CartView: View {
     @EnvironmentObject var auth: AuthViewModel
-    @EnvironmentObject var cartStore: CartStoreManager
+    @EnvironmentObject var cart: CartStoreManager
 
     @Binding var returnToHome: Bool
     @Binding var navigateToPayment: Bool
@@ -72,7 +70,7 @@ struct CartView: View {
                             .font(.title2.bold())
                     }
 
-                    Button(action: { createOrderFromCart() }) {
+                    Button(action: checkout) {
                         Text("Proceed to Payment")
                             .bold()
                             .frame(maxWidth: .infinity)
@@ -94,25 +92,27 @@ struct CartView: View {
         .navigationBarBackButtonHidden(false)
     }
 
-    // TODO: Look>> Step 7 will move this to Payment orchestration
-    private func createOrderFromCart() {
-        guard
-            let userId = auth.user?.id,
-            let payload = vm.makeOrderRequest(userId: userId)
-        else {
-            print("❌ Missing/invalid user id or failed to build payload")
+    private func checkout() {
+        guard let userId = auth.user?.id else {
+            print("❌ Missing user id")
             return
         }
 
         Task {
             do {
-                let order = try await orderService.createOrder(payload, token: tokenProvider?.token)
+                let order = try await vm.createOrder(
+                    userId: userId,
+                    orderService: orderService,
+                    tokenProvider: tokenProvider
+                )
                 await MainActor.run {
                     self.createdOrderId = order.id
                     self.createdOrderAmount = order.totalAmount
                     self.navigateToPayment = true
                     self.showCartView = false
                 }
+            } catch CheckoutError.emptyCart {
+                print("❌ Empty cart")
             } catch {
                 print("❌ Failed to create order from cart:", error)
             }

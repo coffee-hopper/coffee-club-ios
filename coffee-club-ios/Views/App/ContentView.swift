@@ -197,6 +197,7 @@ struct ContentView: View {
                     productService: localEnv.productService
                 )
                 .environmentObject(auth)
+                .environmentObject(cart)
             }
 
             // Product Detail
