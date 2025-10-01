@@ -95,8 +95,8 @@ struct ContentView: View {
                     )
                     .frame(height: geo.size.height * 0.075)
 
-                    // REWARDS
-                    RewardView()
+                    // LOYALTY
+                    LoyaltyView()
                         .frame(height: geo.size.height * 0.25)
 
                     // PRODUCTS

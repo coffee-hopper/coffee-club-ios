@@ -1,3 +1,5 @@
+//TODO: on cart view if we click the cart stepper buttons got FATAL error :
+/// Thread 1: Fatal error: No ObservableObject of type CartStoreManager found. A View.environmentObject(_:) for CartStoreManager may be missing as an ancestor of this view.
 import SwiftUI
 
 struct CartStepperButton: View {

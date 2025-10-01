@@ -8,5 +8,5 @@ enum APIEndpoints {
     static let payments = "/payments"
     static func payment(_ id: Int) -> String { "/payments/\(id)" }
 
-    static func loyaltyStatus(_ userId: Int) -> String { "/loyalty/status/\(userId)" }
+    static func loyaltyStatus(_ userId: Int) -> String { "/loyalty/user/\(userId)/stars" }
 }
