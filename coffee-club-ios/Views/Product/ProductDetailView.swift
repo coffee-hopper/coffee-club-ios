@@ -1,5 +1,3 @@
-//TODO: Look for the "loadLatest" func >> should be live in here or its own viewmodel ? (it doesnt had one)
-
 import SwiftUI
 
 struct ProductDetailView: View {
@@ -9,15 +7,23 @@ struct ProductDetailView: View {
     @EnvironmentObject private var selection: ProductSelection
     @Environment(\.appEnvironment) private var env
 
-    @State private var product: Product?
-    @State private var isLoading = false
-    @State private var errorText: String?
+    @StateObject private var vm = ProductDetailViewModel()
+
+    private var isLoading: Bool {
+        if case .loading = vm.state { return true }
+        return false
+    }
+
+    private var errorText: String? {
+        if case .error(let msg) = vm.state { return msg }
+        return nil
+    }
 
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
                 Image(
-                    (product?.processedImageName)
+                    (vm.product?.processedImageName)
                         ?? (selection.snapshot(for: productID)?.imageName ?? "")
                 )
                 .resizable()
@@ -29,16 +35,15 @@ struct ProductDetailView: View {
                 .padding(.horizontal)
 
                 VStack(alignment: .leading, spacing: 12) {
-                    Text(product?.name ?? selection.snapshot(for: productID)?.name ?? "Loading…")
+                    Text(vm.product?.name ?? selection.snapshot(for: productID)?.name ?? "Loading…")
                         .font(.title)
                         .bold()
 
-                    if let p = product {
+                    if let p = vm.product {
                         HStack(spacing: 16) {
                             Text(p.category.capitalized)
                                 .font(.subheadline)
                                 .foregroundColor(.secondary)
-
                             Text("Stock: \(p.stockQuantity)")
                                 .font(.subheadline)
                                 .foregroundColor(p.stockQuantity > 0 ? .green : .red)
@@ -51,7 +56,7 @@ struct ProductDetailView: View {
                         .foregroundStyle(.secondary)
                     }
 
-                    if let p = product {
+                    if let p = vm.product {
                         Text(PriceFormatting.string(from: Decimal(p.price)))
                             .font(.title2.bold())
                             .foregroundColor(.accentColor)
@@ -69,7 +74,7 @@ struct ProductDetailView: View {
 
                     Text("Description")
                         .font(.headline)
-                    if let p = product {
+                    if let p = vm.product {
                         Text(p.description ?? "No description available.")
                             .font(.body)
                             .foregroundColor(.primary)
@@ -86,17 +91,102 @@ struct ProductDetailView: View {
 
                 Spacer(minLength: 24)
 
-                Button(action: { if let p = product { cart.addToCart(p) } }) {
-                    Text(product == nil ? "Loading…" : "Add to Cart")
-                        .font(.headline)
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(product == nil ? Color.gray.opacity(0.4) : Color.accentColor)
-                        .foregroundColor(.white)
-                        .cornerRadius(12)
-                        .padding(.horizontal)
+                Group {
+                    if let p = vm.product {
+                        let qty = cart.quantity(for: p.id)
+                        let isOutOfStock = p.stockQuantity == 0
+
+                        if qty == 0 {
+                            Button(action: {
+                                guard !isOutOfStock else { return }
+                                withAnimation(.spring(response: 0.5, dampingFraction: 0.85)) {
+                                    cart.addToCart(p)
+                                }
+                            }) {
+                                Text(isOutOfStock ? "Out of Stock" : "Add to Cart")
+                                    .font(.headline)
+                                    .frame(maxWidth: .infinity)
+                                    .padding(24)
+                                    .background(
+                                        isOutOfStock ? Color.gray.opacity(0.4) : Color.accentColor
+                                    )
+                                    .foregroundColor(.white)
+                                    .cornerRadius(12)
+                                    .padding(.horizontal)
+                            }
+                            .disabled(isOutOfStock)
+
+                        } else {
+                            VStack {
+                                HStack(spacing: 12) {
+                                    Text("Added to cart")
+                                        .font(.headline)
+                                        .foregroundColor(.white)
+
+                                    Spacer(minLength: 0)
+
+                                    CartStepperButton(
+                                        product: p,
+                                        quantity: qty,
+                                        height: 28,
+                                        isOutOfStock: isOutOfStock,
+                                        onZeroQuantity: {
+                                            cart.removeFromCart(productId: p.id)
+                                        }
+                                    )
+
+                                    Button {
+                                        withAnimation(.spring(response: 0.5, dampingFraction: 0.85))
+                                        {
+                                            cart.removeFromCart(productId: p.id)
+                                        }
+                                    } label: {
+                                        Image(systemName: "trash")
+                                            .foregroundColor(.white)
+                                            .padding(8)
+                                            .background(Color.red.opacity(0.95), in: Circle())
+                                    }
+                                    .accessibilityLabel("Remove from cart")
+                                }
+                                .padding()
+                                .background(Color.accentDark.opacity(0.9))
+                                .cornerRadius(12)
+                                .padding(.horizontal)
+                                .transition(.move(edge: .trailing).combined(with: .opacity))
+
+                                HStack {
+                                    IconButton(
+                                        systemName: "cart",
+                                        action: { env.nav.openCart() },
+                                        isFilled: false,
+                                        iconSize: 30
+                                    )
+                                    .accessibilityLabel("Go to cart")
+                                }
+                                .padding()
+                                .background(Color.accentColor)
+                                .cornerRadius(12)
+                                .padding(.horizontal)
+                                .transition(.move(edge: .trailing).combined(with: .opacity))
+
+                            }
+                        }
+
+                    } else {
+                        Button(action: {}) {
+                            Text("Loading…")
+                                .font(.headline)
+                                .frame(maxWidth: .infinity)
+                                .padding()
+                                .background(Color.gray.opacity(0.4))
+                                .foregroundColor(.white)
+                                .cornerRadius(12)
+                                .padding(.horizontal)
+                        }
+                        .disabled(true)
+                    }
                 }
-                .disabled(product == nil)
+                .animation(.easeInOut(duration: 0.2), value: cart.items.count)
             }
             .padding(.top)
         }
@@ -107,7 +197,7 @@ struct ProductDetailView: View {
                 VStack(spacing: 12) {
                     Text("Failed to load product").font(.headline)
                     Text(errorText).font(.subheadline).foregroundStyle(.secondary)
-                    Button("Retry") { Task { await loadLatest() } }
+                    Button("Retry") { vm.refresh(productID: productID) }
                         .buttonStyle(.borderedProminent)
                 }
                 .padding()
@@ -115,27 +205,12 @@ struct ProductDetailView: View {
                 .padding()
             }
         }
-        .task { await loadLatest() }
-    }
-
-    @MainActor
-    private func loadLatest() async {
-        guard !isLoading else { return }
-        isLoading = true
-        errorText = nil
-        do {
-            let token = env.tokenProvider?.token
-            print("[Detail] GET product id=\(productID), tokenPresent=\(token != nil)")
-            let fetched = try await env.productService.fetchProduct(id: productID, token: token)
-            self.product = fetched
-        } catch let AppError.http(status: code, message: msg) {
-            print("[Detail] HTTP error \(code) \(msg ?? "")")
-            self.errorText = msg ?? "HTTP \(code)"
-        } catch {
-            print("[Detail] Decode/Other error:", error)
-            self.errorText = error.localizedDescription
+        .onAppear {
+            vm.configure(
+                productService: env.productService,
+                tokenProvider: { env.tokenProvider?.token }
+            )
+            vm.load(productID: productID)
         }
-        isLoading = false
     }
-
 }
