@@ -15,12 +15,15 @@ final class AppDelegate: NSObject, UIApplicationDelegate {
     }
 }
 
+enum AppLog {
+    static let products = Logger(subsystem: "app.coffeeclub", category: "Products")
+}
+
 @main
 struct CoffeeClubApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
 
     @StateObject private var nav: NavigationCoordinator
-
     @StateObject private var auth: AuthViewModel
 
     private let environment: AppEnvironment
@@ -31,20 +34,24 @@ struct CoffeeClubApp: App {
         configureGoogle()
 
         let nav = NavigationCoordinator()
-        let env = AppEnvironment.makeDefault(
-            apiBaseURL: URL(string: "http://localhost:3000")!,
-            nav: nav
+
+        /// Build an authService just for AuthViewModel (no token needed to sign in)
+        let baseURL = URL(string: "http://localhost:3000")!
+        let tempEnv = AppEnvironment.makeDefault(apiBaseURL: baseURL, nav: nav)  // tokenProvider: nil
+
+        /// Create AuthViewModel with the temp authService + nav
+        let authVM = AuthViewModel(authService: tempEnv.authService, nav: tempEnv.nav)
+
+        /// Rebuild the real environment WITH tokenProvider
+        let realEnv = AppEnvironment.makeDefault(
+            apiBaseURL: baseURL,
+            nav: nav,
+            tokenProvider: authVM
         )
 
         _nav = StateObject(wrappedValue: nav)
-        _auth = StateObject(
-            wrappedValue: AuthViewModel(
-                authService: env.authService,
-                nav: env.nav,
-            )
-        )
-
-        environment = env
+        _auth = StateObject(wrappedValue: authVM)
+        environment = realEnv
     }
 
     var body: some Scene {

@@ -37,3 +37,19 @@ final class APIProductService: ProductServiceProtocol {
         try await client.request(Product.self, APIEndpoints.product(id), token: token)
     }
 }
+
+extension ProductServiceProtocol {
+    /// Mimics app startup fetch (same defaults as initial Home).
+    public func refreshOnAppOpen(token: String?) async throws -> [Product] {
+        try await fetchProducts(
+            token: token,
+            q: nil,
+            category: "coffee",
+            inStock: nil,
+            offset: 0,
+            limit: 50,
+            sort: "name",
+            order: "asc"
+        )
+    }
+}

@@ -1,17 +1,14 @@
-//TODO: look AppEnvironment ok for now part- remove later ?
-//TODO: After Each payment transaction product list must be refetch so quantities updated.
-//TODO: Look for the part of Optional: after returning home, trigger product refresh (post-payment)
-
 import SwiftUI
 
 struct ContentView: View {
     var auth: AuthViewModel
 
     @EnvironmentObject private var nav: NavigationCoordinator
-    @Environment(\.appEnvironment) private var environment
+    @Environment(\.appEnvironment) private var env
 
     @StateObject private var cart = CartStoreManager()
     @StateObject private var selection = ProductSelection()
+    @StateObject private var productsVM = ProductViewModel()
 
     @State private var isSearchFocused: Bool = false
     @State private var searchTapShield: Bool = false
@@ -29,16 +26,8 @@ struct ContentView: View {
     // Payment → Home bridge
     @State private var closePaymentAndGoHome = false
 
-    // Local environment (services) using the current nav/auth
-    private var localEnv: AppEnvironment {
-        AppEnvironment.makeDefault(
-            apiBaseURL: URL(string: API.baseURL)!,
-            nav: nav,
-            tokenProvider: auth
-        )
-    }
-
     // MARK: Local bindings to adapt existing screens to routes
+
     private var returnToHomeBinding: Binding<Bool> {
         Binding(
             get: { false },
@@ -91,7 +80,7 @@ struct ContentView: View {
                     MainHeaderView(
                         showProfile: nav.isProfileActive,
                         showNotification: nav.isNotificationsActive,
-                        notificationService: localEnv.notificationService
+                        notificationService: env.notificationService
                     )
                     .frame(height: geo.size.height * 0.075)
 
@@ -106,7 +95,8 @@ struct ContentView: View {
                         category: $selectedCategory,
                         searchTapShield: $searchTapShield,
                         title: selectedCategory,
-                        heightUnit: geo.size.height * 0.60
+                        heightUnit: geo.size.height * 0.60,
+                        vm: productsVM
                     )
                     .environmentObject(cart)
                     .environmentObject(auth)
@@ -119,9 +109,9 @@ struct ContentView: View {
                         navigateToPayment: $footerRequestsNavigatePayment,
                         createdOrderId: $createdOrderId,
                         createdOrderAmount: $createdOrderAmount,
-                        productService: localEnv.productService,
-                        orderService: localEnv.orderService,
-                        tokenProvider: localEnv.tokenProvider
+                        productService: env.productService,
+                        orderService: env.orderService,
+                        tokenProvider: env.tokenProvider
                     )
                     .frame(height: geo.size.height * 0.075)
                 }
@@ -177,7 +167,7 @@ struct ContentView: View {
             // Notifications
             .navigationDestination(isPresented: nav.isNotificationsActive) {
                 NotificationView(
-                    vm: NotificationsViewModel(service: localEnv.notificationService),
+                    vm: NotificationsViewModel(service: env.notificationService),
                     isActive: nav.isNotificationsActive
                 )
                 .environmentObject(auth)
@@ -191,10 +181,10 @@ struct ContentView: View {
                     showCartView: showCartBinding,
                     createdOrderId: $createdOrderId,
                     createdOrderAmount: $createdOrderAmount,
-                    orderService: localEnv.orderService,
-                    tokenProvider: localEnv.tokenProvider,
+                    orderService: env.orderService,
+                    tokenProvider: env.tokenProvider,
                     store: cart,
-                    productService: localEnv.productService
+                    productService: env.productService
                 )
                 .environmentObject(auth)
                 .environmentObject(cart)
@@ -241,7 +231,7 @@ struct ContentView: View {
                 }
             }
         }
-        .environment(\.appEnvironment, localEnv)
+        .environment(\.appEnvironment, env)
 
         // Footer → Payment
         .onChange(of: footerRequestsNavigatePayment) { _, wantsNavigate in
@@ -258,10 +248,16 @@ struct ContentView: View {
             }
         }
 
-        //TODO: after returning home, trigger product refresh (post-payment)
+        /// after returning home, trigger product refresh
         .onChange(of: nav.route) { _, newRoute in
-            if case .home = newRoute {
-                // Task { await productsVM.refetch() }
+            guard case .home = newRoute else { return }
+            Task {
+                let token = env.tokenProvider?.token
+                if let items = try? await env.productService.refreshOnAppOpen(token: token) {
+                    await MainActor.run {
+                        productsVM.applyHomeRefetch(items, category: selectedCategory)
+                    }
+                }
             }
         }
     }

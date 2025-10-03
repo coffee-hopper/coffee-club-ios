@@ -8,13 +8,14 @@ struct ProductView: View {
 
     let title: String
     let heightUnit: CGFloat
+    
+    @ObservedObject var vm: ProductViewModel
 
     @EnvironmentObject var auth: AuthViewModel
     @EnvironmentObject var nav: NavigationCoordinator
     @EnvironmentObject var selection: ProductSelection
     @Environment(\.appEnvironment) private var environment
 
-    @StateObject private var vm = ProductViewModel()
     @State private var activeProductId: Int? = nil
     @FocusState private var tfFocused: Bool
 
@@ -66,7 +67,7 @@ struct ProductView: View {
 
                         TextField("Search...", text: $searchText)
                             .padding(.leading, 10)
-                            .padding(.trailing, 10) 
+                            .padding(.trailing, 10)
                             .frame(height: 40)
                             .background(
                                 RoundedRectangle(cornerRadius: 10)

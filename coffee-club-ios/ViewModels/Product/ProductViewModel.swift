@@ -120,6 +120,21 @@ final class ProductViewModel: ObservableObject {
         }
     }
 
+    @MainActor
+    func applyHomeRefetch(_ items: [Product], category: String) {
+        /// cancel any ongoing work
+        debounceTask?.cancel()
+        fetchTask?.cancel()
+
+        /// update state
+        self.products = items
+        self.selectedCategory = category
+        self.state = .loaded
+
+        /// force next manual fetch to run
+        self.lastQueryKey = nil
+    }
+
     func onProductTapped(_ product: Product) {
         selection?.set(
             ProductSummary(
