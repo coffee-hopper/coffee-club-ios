@@ -3,7 +3,7 @@ import Foundation
 struct PaymentRequest: Codable {
     let order: Int
     let iyzicoTransactionId: String
-    let amount: Double
+    let amount: Decimal
     let paymentMethod: String  // "cash" or "iyzico"
     let status: String  // always "success" for now
 }

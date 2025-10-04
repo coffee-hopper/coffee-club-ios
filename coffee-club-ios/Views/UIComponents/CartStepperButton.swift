@@ -1,3 +1,5 @@
+//TODO: on cart view if we click the cart stepper buttons got FATAL error :
+/// Thread 1: Fatal error: No ObservableObject of type CartStoreManager found. A View.environmentObject(_:) for CartStoreManager may be missing as an ancestor of this view.
 import SwiftUI
 
 struct CartStepperButton: View {
@@ -8,7 +10,7 @@ struct CartStepperButton: View {
     var onZeroQuantity: (() -> Void)? = nil
     var onTap: (() -> Void)? = nil
 
-    @EnvironmentObject var cart: CartManager
+    @EnvironmentObject var cart: CartStoreManager
     @State private var showStepper = false
     @State private var resetTimer: Timer?
 
@@ -45,7 +47,7 @@ struct CartStepperButton: View {
                     if actualQuantity < product.stockQuantity {
                         onTap?()
                         cart.addToCart(product)
-                        cancelReset() 
+                        cancelReset()
                     }
                 }) {
                     Image(systemName: "plus")
@@ -61,6 +63,7 @@ struct CartStepperButton: View {
             } else {
                 Button(action: {
                     if !isOutOfStock {
+                        onTap?()
                         cart.addToCart(product)
                         withAnimation {
                             showStepper = true

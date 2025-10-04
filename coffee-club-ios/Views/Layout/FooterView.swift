@@ -1,10 +1,16 @@
 import SwiftUI
 
 struct FooterView: View {
-    @EnvironmentObject var coordinator: ViewCoordinator
+    @EnvironmentObject var nav: NavigationCoordinator
+    
     @Binding var isPresentingScanner: Bool
+    @Binding var navigateToPayment: Bool
     @Binding var createdOrderId: Int?
-    @Binding var createdOrderAmount: Double?
+    @Binding var createdOrderAmount: Decimal?
+    
+    let productService: ProductServiceProtocol
+    let orderService: OrderServiceProtocol
+    let tokenProvider: TokenProviding?
 
     var body: some View {
         HStack {
@@ -18,15 +24,18 @@ struct FooterView: View {
 
             QRScanner(
                 isPresentingScanner: $isPresentingScanner,
-                navigateToPayment: $coordinator.navigateToPayment,
+                navigateToPayment: $navigateToPayment,
                 createdOrderId: $createdOrderId,
-                createdOrderAmount: $createdOrderAmount
+                createdOrderAmount: $createdOrderAmount,
+                productService: productService,
+                orderService: orderService,
+                tokenProvider: tokenProvider
             )
 
             Spacer()
 
             IconButton(systemName: "cart.fill") {
-                coordinator.showCart = true
+                nav.openCart()
             }
 
             Spacer()
@@ -36,9 +45,3 @@ struct FooterView: View {
     }
 }
 
-#Preview {
-    let auth = AuthViewModel()
-    return ContentView(auth: auth)
-        .environmentObject(auth)
-        .environmentObject(ViewCoordinator())
-}

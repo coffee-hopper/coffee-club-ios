@@ -5,22 +5,17 @@ struct ProductCard: View {
     let heightUnit: CGFloat
     @Binding var activeProductId: Int?
 
-    @EnvironmentObject var cart: CartManager
-    @EnvironmentObject var coordinator: ViewCoordinator
+    @EnvironmentObject var cart: CartStoreManager
+    @EnvironmentObject var nav: NavigationCoordinator
+    @EnvironmentObject var selection: ProductSelection
 
     @State private var tiltAngle: Double = -9
 
-    var isOutOfStock: Bool {
-        product.stockQuantity == 0
-    }
-
-    var isStepperVisible: Bool {
-        activeProductId == product.id
-    }
+    var isOutOfStock: Bool { product.stockQuantity == 0 }
+    var isStepperVisible: Bool { activeProductId == product.id }
 
     var body: some View {
         ZStack {
-
             VStack(spacing: 4) {
                 Spacer()
 
@@ -28,12 +23,11 @@ struct ProductCard: View {
                     .font(.system(size: 14))
                     .lineLimit(1)
 
-                Text(String(format: "%.2f ₺", Double(product.price)))
+                Text(PriceFormatting.string(from: Decimal(product.price)))
                     .font(.subheadline.bold())
                     .foregroundColor(.accent)
-                
-                Spacer()
-                    .frame(height: 2)
+
+                Spacer().frame(height: 2)
             }
             .frame(width: heightUnit * 0.75, height: heightUnit * 0.75)
             .taperedCardBackground(heightUnit: heightUnit * 0.75, isOutOfStock: isOutOfStock)
@@ -47,10 +41,16 @@ struct ProductCard: View {
                     .rotationEffect(.degrees(tiltAngle))
                     .opacity(isOutOfStock ? 0.4 : 1.0)
                     .onTapGesture {
-                        coordinator.selectedProduct = product
-                        coordinator.showProductDetail = true
+                        selection.set(
+                            .init(
+                                id: product.id,
+                                name: product.name,
+                                price: Decimal(product.price),
+                                imageName: product.processedImageName
+                            )
+                        )
+                        nav.openProduct(product.id)
                     }
-                
 
                 Spacer()
 
@@ -64,20 +64,16 @@ struct ProductCard: View {
                             tiltAngle = 9
                             activeProductId = product.id
                         }
-
                         DispatchQueue.main.asyncAfter(deadline: .now() + 0.12) {
                             withAnimation(.spring()) {
                                 tiltAngle = -9
                             }
                         }
                     }
-
                 )
-
             }
             .frame(width: heightUnit * 0.95, height: heightUnit * 0.95)
             .zIndex(2)
-
         }
         .frame(width: heightUnit * 0.80, height: heightUnit)
     }

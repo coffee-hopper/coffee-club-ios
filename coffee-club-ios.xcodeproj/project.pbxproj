@@ -14,7 +14,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		E0D56C3D2DD34F4100A9603A /* coffee-club-ios.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "coffee-club-ios.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		E028E59B2E5C8555004DCED2 /* coffee-club-ios.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "coffee-club-ios.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -57,7 +57,7 @@
 			isa = PBXGroup;
 			children = (
 				E0D56BF12DCCB3A900A9603A /* coffee-club-ios */,
-				E0D56C3D2DD34F4100A9603A /* coffee-club-ios.app */,
+				E028E59B2E5C8555004DCED2 /* coffee-club-ios.app */,
 			);
 			sourceTree = "<group>";
 		};
@@ -87,7 +87,7 @@
 				E0FB27E02E094EAB00A1D10B /* CodeScanner */,
 			);
 			productName = "coffee-club-ios";
-			productReference = E0D56C3D2DD34F4100A9603A /* coffee-club-ios.app */;
+			productReference = E028E59B2E5C8555004DCED2 /* coffee-club-ios.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -279,12 +279,12 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "coffee-club-ios/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "Coffee Club";
 				INFOPLIST_KEY_NSCameraUsageDescription = "We need the camera to scan QR codes.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -308,12 +308,12 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "coffee-club-ios/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "Coffee Club";
 				INFOPLIST_KEY_NSCameraUsageDescription = "We need the camera to scan QR codes.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",

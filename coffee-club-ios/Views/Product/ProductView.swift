@@ -1,153 +1,29 @@
 import SwiftUI
 
 struct ProductView: View {
-    let title: String
-    @Binding var showAllBinding: Bool
+    @Binding var isSearchFocused: Bool
     @Binding var searchText: String
     @Binding var category: String
+    @Binding var searchTapShield: Bool
+
+    let title: String
+    let heightUnit: CGFloat
+    
+    @ObservedObject var vm: ProductViewModel
 
     @EnvironmentObject var auth: AuthViewModel
-    @State private var allProducts: [Product] = []
-
-    @State private var isSearching = false
-    @FocusState private var isTextFieldFocused: Bool
+    @EnvironmentObject var nav: NavigationCoordinator
+    @EnvironmentObject var selection: ProductSelection
+    @Environment(\.appEnvironment) private var environment
 
     @State private var activeProductId: Int? = nil
-
-    let heightUnit: CGFloat
-
-    var filteredProducts: [Product] {
-        allProducts
-            .filter { product in
-                product.category.localizedCaseInsensitiveContains(category)
-                    && (searchText.isEmpty
-                        || product.name.localizedCaseInsensitiveContains(searchText))
-            }
-    }
+    @FocusState private var tfFocused: Bool
 
     var body: some View {
         ZStack {
-            if isSearching {
-                Color.clear
-                    .contentShape(Rectangle())
-                    .onTapGesture {
-                        withAnimation {
-                            isSearching = false
-                            isTextFieldFocused = false
-                            searchText = ""
-                        }
-                    }
-                    .ignoresSafeArea()
-            }
-
-            // MARK: Categories & SearchBar
             VStack(spacing: 0) {
-                // MARK: Categories
-                HStack {
-                    VStack {
-                        IconButton(systemName: "cup.and.heat.waves.fill") {
-                            category = "coffee"
-                        }
-                        Text("Coffee")
-                            .foregroundColor(
-                                category == "coffee"
-                                    ? Color("TextPrimary") : Color("TextPrimary").opacity(0.45)
-                            )
-                    }
 
-                    Spacer()
-
-                    VStack {
-                        IconButton(systemName: "fork.knife") {
-                            category = "food"
-                        }
-                        Text("Food")
-                            .foregroundColor(
-                                category == "food"
-                                    ? Color("TextPrimary") : Color("TextPrimary").opacity(0.45)
-                            )
-                    }
-
-                    Spacer()
-
-                    VStack {
-                        IconButton(systemName: "mug") {
-                            category = "tea"
-                        }
-                        Text("Tea")
-                            .foregroundColor(
-                                category == "tea"
-                                    ? Color("TextPrimary") : Color("TextPrimary").opacity(0.45)
-                            )
-                    }
-                }
-                .padding(.horizontal, 12)
-                .frame(height: heightUnit * 0.2)
-
-                // MARK: SearchBar
-                HStack {
-                    ZStack {
-                        //MARK: Invisible tap area to trigger search
-                        Color.clear
-                            .frame(height: 75)
-                            .contentShape(Rectangle())
-                            .onTapGesture {
-                                if !isSearching {
-                                    withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
-                                        isSearching = true
-                                    }
-                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                                        isTextFieldFocused = true
-                                    }
-                                } else {
-                                    withAnimation {
-                                        isSearching = false
-                                        isTextFieldFocused = false
-                                        searchText = ""
-                                    }
-                                }
-                            }
-
-                        HStack {
-                            if isSearching {
-                                TextField("Search...", text: $searchText)
-                                    .padding(.horizontal, 10)
-                                    .frame(height: 40)
-                                    .background(
-                                        RoundedRectangle(cornerRadius: 10)
-                                            .strokeBorder(Color("TextSecondary"), lineWidth: 1)
-                                    )
-                                    .focused($isTextFieldFocused)
-                                    .transition(.opacity)
-                            } else {
-                                Color("TextSecondary").frame(height: 1)
-                            }
-
-                            IconButton(
-                                systemName: "magnifyingglass",
-                                action: {
-                                    withAnimation(.spring(response: 0.8, dampingFraction: 0.8)) {
-                                        isSearching.toggle()
-                                    }
-
-                                    if !isSearching {
-                                        isTextFieldFocused = false
-                                        searchText = ""
-                                    } else {
-                                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                                            isTextFieldFocused = true
-                                        }
-                                    }
-                                }
-                            )
-                        }
-                        .frame(height: 70)
-                        .padding(.horizontal, 12)
-                    }
-                }
-                .frame(height: heightUnit * 0.15)
-
-                // MARK: Product Cards & Header
+                // MARK: Header
                 HStack(alignment: .center) {
                     Text("Special for you")
                         .font(.system(size: 20).bold())
@@ -156,18 +32,101 @@ struct ProductView: View {
 
                     Button("See All \(title.capitalized)s") {
                         DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
-                            showAllBinding = true
+                            vm.openSeeAll()
                         }
                     }
                     .foregroundColor(Color(.accent))
                     .font(.system(size: 12).bold())
                 }
-                .frame(height: heightUnit * 0.1)
+                .frame(height: heightUnit * 0.07)
                 .padding(.horizontal, 12)
+                .padding(.top, 0)
 
+                // MARK: Categories
+                HStack {
+                    categoryButton("Coffee", icon: "cup.and.heat.waves.fill", tag: "coffee")
+                    Spacer()
+                    categoryButton("Food", icon: "fork.knife", tag: "food")
+                    Spacer()
+                    categoryButton("Tea", icon: "mug", tag: "tea")
+                }
+                .padding(.horizontal, 12)
+                .frame(height: heightUnit * 0.2)
+
+                // MARK: SearchBar
+                HStack {
+                    let isActive = tfFocused || !searchText.isEmpty
+
+                    HStack(spacing: 8) {
+                        Rectangle()
+                            .fill(Color("TextSecondary"))
+                            .frame(height: 1)
+                            .frame(maxWidth: isActive ? 0 : .infinity, alignment: .leading)
+                            .opacity(isActive ? 0 : 1)
+                            .animation(.easeInOut(duration: 0.2), value: isActive)
+
+                        TextField("Search...", text: $searchText)
+                            .padding(.leading, 10)
+                            .padding(.trailing, 10)
+                            .frame(height: 40)
+                            .background(
+                                RoundedRectangle(cornerRadius: 10)
+                                    .strokeBorder(Color("TextSecondary"), lineWidth: 1)
+                            )
+                            .textInputAutocapitalization(.never)
+                            .disableAutocorrection(true)
+                            .focused($tfFocused)
+                            .frame(maxWidth: isActive ? .infinity : 0, alignment: .leading)
+                            .opacity(isActive ? 1 : 0)
+                            .clipped()
+                            .animation(.easeInOut(duration: 0.2), value: isActive)
+
+                        IconButton(
+                            systemName: (tfFocused || !searchText.isEmpty)
+                                ? "xmark" : "magnifyingglass",
+                            action: {
+                                searchTapShield = true
+                                withAnimation(.spring(response: 0.8, dampingFraction: 0.85)) {
+                                    if tfFocused || !searchText.isEmpty {
+                                        searchText = ""
+                                        tfFocused = false
+                                        isSearchFocused = false
+                                    } else {
+                                        isSearchFocused = true
+                                        tfFocused = true
+                                        DispatchQueue.main.async { tfFocused = true }
+                                    }
+                                }
+                            },
+                            isFilled: true,
+                            bgFill: (tfFocused || !searchText.isEmpty)
+                                ? Color("AccentRed")
+                                : Color("GreenEnergic").opacity(0.6)
+                        )
+                    }
+                    .frame(height: 70)
+                    .padding(.horizontal, 12)
+                    .contentShape(Rectangle())
+                    /// Tell parent the tap originated inside search UI (so it doesn't auto-dismiss)
+                    .simultaneousGesture(
+                        DragGesture(minimumDistance: 0).onChanged { _ in
+                            if !searchTapShield { searchTapShield = true }
+                        }
+                    )
+                    .onTapGesture {
+                        withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
+                            isSearchFocused = true
+                            tfFocused = true
+                        }
+                        DispatchQueue.main.async { tfFocused = true }
+                    }
+                }
+                .frame(height: heightUnit * 0.15)
+
+                // MARK: Horizontal products
                 ScrollView(.horizontal, showsIndicators: false) {
-                    HStack {
-                        ForEach(filteredProducts) { product in
+                    HStack(spacing: 12) {
+                        ForEach(vm.filteredProducts) { product in
                             ProductCard(
                                 product: product,
                                 heightUnit: heightUnit * 0.55,
@@ -175,57 +134,64 @@ struct ProductView: View {
                             )
                         }
                     }
-
+                    .padding(.horizontal, 12)
                 }
                 .frame(height: heightUnit * 0.55)
+            }
+
+            // MARK: State surface
+            switch vm.state {
+            case .loading:
+                ProgressView().padding(.top, 8)
+            case .error(let message):
+                Text(message)
+                    .font(.footnote)
+                    .foregroundColor(.red)
+                    .padding(.top, 6)
+            default:
+                EmptyView()
             }
         }
         .padding(.horizontal)
         .onAppear {
-            fetchProducts()
+            vm.configure(
+                productService: environment.productService,
+                nav: nav,
+                selection: selection,
+                tokenProvider: { auth.token }
+            )
+            vm.searchText = searchText
+            vm.selectedCategory = category
+            tfFocused = isSearchFocused
+            vm.load()
+        }
+        .onChange(of: searchText) { _, newValue in
+            vm.searchText = newValue
+            vm.filtersDidChange()
+        }
+        .onChange(of: category) { _, newValue in
+            vm.selectedCategory = newValue
+            vm.filtersDidChange()
+        }
+        /// two-way sync parent with TextField focus
+        .onChange(of: isSearchFocused) { _, new in
+            if new != tfFocused { tfFocused = new }
+        }
+        .onChange(of: tfFocused) { _, new in
+            if new != isSearchFocused { isSearchFocused = new }
         }
     }
 
-    private func fetchProducts() {
-        guard let token = auth.token else {
-            print("❌ No token available in ProductView")
-            return
+    private func categoryButton(_ label: String, icon: String, tag: String) -> some View {
+        VStack(spacing: 6) {
+            IconButton(systemName: icon) { category = tag }
+            Text(label)
+                .foregroundColor(
+                    category == tag
+                        ? Color("TextPrimary")
+                        : Color("TextPrimary").opacity(0.45)
+                )
+                .font(.footnote)
         }
-
-        guard let url = URL(string: "http://localhost:3000/products") else {
-            print("❌ Invalid /products endpoint")
-            return
-        }
-
-        var request = URLRequest(url: url)
-        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-
-        URLSession.shared.dataTask(with: request) { data, _, error in
-            if let error = error {
-                print("❌ Product fetch error: \(error.localizedDescription)")
-                return
-            }
-
-            guard let data = data else {
-                print("⚠️ No product response")
-                return
-            }
-
-            do {
-                let decoded = try JSONDecoder().decode([Product].self, from: data)
-                DispatchQueue.main.async {
-                    self.allProducts = decoded
-                }
-                print("✅ Products loaded: \(decoded.count)")
-            } catch {
-                print("❌ JSON decode error: \(error.localizedDescription)")
-            }
-        }.resume()
     }
-}
-
-#Preview {
-    let auth = AuthViewModel()
-    return ContentView(auth: auth)
-        .environmentObject(auth)
 }

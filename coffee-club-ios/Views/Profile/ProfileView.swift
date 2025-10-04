@@ -12,16 +12,40 @@ struct ProfileView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             VStack(spacing: 8) {
-                if let urlString = auth.user?.picture,
+                /// Avatar
+                if let path = auth.userCachedPicturePath,
+                    let ui = UIImage(contentsOfFile: path)
+                {
+                    Image(uiImage: ui)
+                        .resizable()
+                        .frame(width: 80, height: 80)
+                        .clipShape(Circle())
+                } else if let urlString = auth.user?.picture,
                     let url = URL(string: urlString)
                 {
-                    AsyncImage(url: url) { image in
-                        image.resizable()
-                    } placeholder: {
-                        ProgressView()
+                    AsyncImage(url: url) { phase in
+                        switch phase {
+                        case .empty:
+                            Image(systemName: "person.crop.circle.fill")
+                                .resizable()
+                                .frame(width: 80, height: 80)
+                                .foregroundColor(Color("Secondary"))
+                        case .success(let image):
+                            image.resizable()
+                                .frame(width: 80, height: 80)
+                                .clipShape(Circle())
+                        case .failure(_):
+                            Image(systemName: "person.crop.circle.fill")
+                                .resizable()
+                                .frame(width: 80, height: 80)
+                                .foregroundColor(Color("Secondary"))
+                        @unknown default:
+                            Image(systemName: "person.crop.circle.fill")
+                                .resizable()
+                                .frame(width: 80, height: 80)
+                                .foregroundColor(Color("Secondary"))
+                        }
                     }
-                    .frame(width: 80, height: 80)
-                    .clipShape(Circle())
                 } else {
                     Image(systemName: "person.crop.circle.fill")
                         .resizable()
@@ -29,6 +53,7 @@ struct ProfileView: View {
                         .foregroundColor(Color("Secondary"))
                 }
 
+                /// Name & role
                 Text(auth.user?.name ?? "Guest")
                     .font(.headline)
                 Text(auth.user?.role ?? "role")
@@ -96,7 +121,7 @@ struct ProfileView: View {
                 titleVisibility: .visible
             ) {
                 Button("Log Out", role: .destructive) {
-                    auth.logout()
+                    auth.signOutTapped()
                     print("🔓 Logged out")
                 }
                 Button("Cancel", role: .cancel) {}
@@ -104,16 +129,4 @@ struct ProfileView: View {
         }
         .navigationTitle("Hi, \(auth.user?.name ?? "Guest")!")
     }
-}
-
-#Preview {
-    struct PreviewWrapper: View {
-        @State private var showProfile = true
-        var body: some View {
-            ProfileView(isActive: $showProfile)
-                .environmentObject(AuthViewModel())
-        }
-    }
-
-    return PreviewWrapper()
 }
