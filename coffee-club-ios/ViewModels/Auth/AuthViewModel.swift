@@ -10,11 +10,11 @@ final class AuthViewModel: ObservableObject, TokenProviding {
     @Published var user: User?
     @Published var state: AuthState = .idle
     @Published var errorMessage: String?
+    @Published var userCachedPicturePath: String?
 
     private let keychain = Keychain(service: "com.yourcompany.coffeeclub")
     private let authService: AuthServiceProtocol
     private let nav: NavigationCoordinator
-    
 
     var isMobileUser: Bool { user?.role == "user" }
     var isOwner: Bool { user?.role == "owner" }
@@ -23,6 +23,24 @@ final class AuthViewModel: ObservableObject, TokenProviding {
         self.authService = authService
         self.nav = nav
         restoreSession()
+    }
+
+    private func prefetchUserImageIfNeeded() {
+        guard let urlString = user?.picture else {
+            userCachedPicturePath = nil
+            return
+        }
+
+        if let cached = DiskImageCache.loadImagePathIfExists(for: urlString) {
+            userCachedPicturePath = cached
+            return
+        }
+
+        Task { @MainActor in
+            if let path = await DiskImageCache.fetchAndCache(from: urlString) {
+                self.userCachedPicturePath = path
+            }
+        }
     }
 
     @MainActor
@@ -63,9 +81,9 @@ final class AuthViewModel: ObservableObject, TokenProviding {
         if let data = try? JSONEncoder().encode(user) {
             keychain["user"] = data.base64EncodedString()
         }
-
         self.token = token
         self.user = user
+        prefetchUserImageIfNeeded()
     }
 
     @MainActor
@@ -87,6 +105,7 @@ final class AuthViewModel: ObservableObject, TokenProviding {
             self.user = user
             self.isLoggedIn = true
             self.state = .authenticated(user: user, token: token)
+            prefetchUserImageIfNeeded()
         } else {
             self.isLoggedIn = false
             self.state = .idle
